@@ -107,4 +107,13 @@ public class MainPage {
             }
         }
     }
+
+    // Проверяет, что блок новостей отображается на главной странице
+    public MainPage checkNewsBlockIsDisplayed() {
+        ViewInteraction newsBlock = onView(
+                allOf(withId(R.id.container_list_news_include_on_fragment_main), isDisplayed())
+        );
+        WaitUtils.waitForElement(newsBlock, 5000);
+        return this;
+    }
 }
