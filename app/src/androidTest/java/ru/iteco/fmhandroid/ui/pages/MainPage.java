@@ -94,16 +94,12 @@ public class MainPage {
         try {
             logout();
         } catch (Exception e) {
-            System.out.println("Normal logout failed, trying force logout: " + e.getMessage());
             try {
                 onView(allOf(withId(R.id.authorization_image_button), isDisplayed()))
                         .perform(click());
-                Thread.sleep(500);
                 onView(withText("Log out")).perform(click());
-                Thread.sleep(1000);
-                System.out.println("Force logout successful");
             } catch (Exception ex) {
-                System.out.println("Force logout also failed: " + ex.getMessage());
+                // Игнорируем
             }
         }
     }

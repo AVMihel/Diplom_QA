@@ -9,6 +9,7 @@ import static org.hamcrest.Matchers.allOf;
 
 import androidx.test.espresso.ViewInteraction;
 
+import ru.iteco.fmhandroid.R;
 import ru.iteco.fmhandroid.ui.utils.WaitUtils;
 
 // Page Object для работы с боковым навигационным меню
@@ -17,7 +18,7 @@ public class NavigationDrawerPage {
     // Открывает боковое меню (кликает по кнопке "гамбургер")
     public NavigationDrawerPage openMenu() {
         ViewInteraction menuButton = onView(
-                allOf(withId(ru.iteco.fmhandroid.R.id.main_menu_image_button),
+                allOf(withId(R.id.main_menu_image_button),
                         isDisplayed())
         );
         WaitUtils.waitForElement(menuButton, 5000);
