@@ -72,7 +72,7 @@ public class NewsPage {
     public NewsPage checkAllNewsButtonIsHidden() {
         try {
             allNewsTitleTextView.check(matches(isDisplayed()));
-            throw new AssertionError("Кнопка 'ALL NEWS' должна быть скрыта после разворачивания блока");
+            throw new AssertionError("The 'ALL NEWS' button should be hidden after the block is expanded.");
         } catch (Exception e) {
             // Ожидаемое поведение - элемент не найден
             return this;

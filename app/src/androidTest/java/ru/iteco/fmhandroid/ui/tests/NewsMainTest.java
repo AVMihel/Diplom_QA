@@ -14,24 +14,20 @@ public class NewsMainTest extends BaseTest {
 
     @Before
     public void setUpTest() {
-        // Выполняем авторизацию перед каждым тестом
         performLoginAndGoToMainScreen();
 
-        // Дополнительная проверка - убедимся, что мы на главной странице
         mainPage.checkMainScreenIsDisplayed();
         mainPage.checkNewsBlockIsDisplayed();
     }
 
     @After
     public void tearDownTest() {
-        // Выходим из системы после каждого теста для чистого состояния
         try {
             if (mainPage.isMainScreenDisplayed()) {
                 mainPage.forceLogout();
                 authPage.checkAuthorizationScreenIsDisplayed();
             }
         } catch (Exception e) {
-            // Игнорируем ошибки выхода
         }
     }
 

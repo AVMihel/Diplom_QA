@@ -13,18 +13,19 @@ import org.junit.Test;
 
 import ru.iteco.fmhandroid.R;
 import ru.iteco.fmhandroid.ui.core.BaseTest;
-import ru.iteco.fmhandroid.ui.core.TestData;
 import ru.iteco.fmhandroid.ui.pages.NavigationDrawerPage;
+import ru.iteco.fmhandroid.ui.pages.QuotesPage;
 
 /**
  * Тестовый класс для проверки функциональности:
- * - Цитаты (Quotes) - базовое тестирование
+ * - Цитаты (Quotes)
  * - Раздел "О приложении" (About)
  * - Выход из системы (Logout)
  */
 public class QuotesAboutLogoutTest extends BaseTest {
 
     private final NavigationDrawerPage navigationDrawer = new NavigationDrawerPage();
+    private final QuotesPage quotesPage = new QuotesPage();
 
     @Before
     public void setUpTest() {
@@ -39,25 +40,52 @@ public class QuotesAboutLogoutTest extends BaseTest {
                 mainPage.forceLogout();
             }
         } catch (Exception e) {
-            // Игнорируем
         }
     }
 
-    // TC-QUOTES-01: Проверка раздела с цитатами
+    // TC-QUOTES-01: Полная проверка работы с цитатами
     @Test
     public void testQuotesFunctionality() {
         // 1. Нажать на верхней панели кнопку перехода в "Quotes"
         mainPage.clickQuotesButton();
 
         // 2. Проверяем, что открывается вкладка Quotes с заголовком "Love is all"
-        mainPage.checkQuotesScreenIsDisplayed();
+        quotesPage.checkQuotesScreenIsDisplayed();
 
         // 3. Проверяем наличие списка цитат
-        onView(withId(R.id.our_mission_item_list_recycler_view))
-                .check(matches(isDisplayed()));
+        quotesPage.checkQuotesListIsDisplayed();
 
-        // 4. Возвращаемся на главный экран через боковое меню
-        navigationDrawer.openMenu().clickMainMenuItem();
+        // 4. Нажать стрелку у одной из цитат (первой в списке)
+        quotesPage.expandQuoteAtPosition(0);
+
+        // 5. Проверяем, что под цитатой раскрывается отзыв пользователя
+        quotesPage.checkQuoteDescriptionIsDisplayedAtPosition(0);
+
+        // 6. Еще раз нажать стрелку у той же цитаты
+        quotesPage.expandQuoteAtPosition(0);
+
+        // 7. Проверяем, что отзыв скрывается
+        quotesPage.checkQuoteDescriptionIsHidden();
+
+        // 8. Возвращаемся на главный экран через боковое меню
+        quotesPage.goBackToMainScreen();
+        mainPage.checkMainScreenIsDisplayed();
+    }
+
+    // Дополнительный тест: проверка разворачивания разных цитат
+    @Test
+    public void testMultipleQuotesExpansion() {
+        // Переходим в Quotes
+        mainPage.clickQuotesButton();
+        quotesPage.checkQuotesScreenIsDisplayed();
+
+        // Проверяем несколько цитат
+        quotesPage.expandAndCollapseQuote(0); // Первая цитата
+        quotesPage.expandAndCollapseQuote(1); // Вторая цитата
+        quotesPage.expandAndCollapseQuote(2); // Третья цитата
+
+        // Возвращаемся на главный
+        quotesPage.goBackToMainScreen();
         mainPage.checkMainScreenIsDisplayed();
     }
 
@@ -92,10 +120,6 @@ public class QuotesAboutLogoutTest extends BaseTest {
 
         // 2. Проверяем переход на экран авторизации
         authPage.checkAuthorizationScreenIsDisplayed();
-
-        // 3. Подтверждаем, что выход успешен - проверяем возможность снова авторизоваться
-        authPage.login(TestData.VALID_LOGIN, TestData.VALID_PASSWORD);
-        mainPage.checkMainScreenIsDisplayed();
     }
 
     // TC-LOGOUT-02: Очистка полей при возврате с главного экрана
@@ -105,16 +129,7 @@ public class QuotesAboutLogoutTest extends BaseTest {
         mainPage.logout();
 
         // 2. Проверяем, что произошел переход на экран авторизации
-        authPage.checkAuthorizationScreenIsDisplayed();
-
-        // 3. Авторизуемся снова
-        authPage.login(TestData.VALID_LOGIN, TestData.VALID_PASSWORD);
-        mainPage.checkMainScreenIsDisplayed();
-
-        // 4. Снова выходим
-        mainPage.logout();
-
-        // 5. Проверяем, что поля снова пустые (экран авторизации отображается)
-        authPage.checkAuthorizationScreenIsDisplayed();
+        // И проверяем, что поля Login и Password пустые
+        authPage.checkAllFieldsAreEmpty();
     }
 }

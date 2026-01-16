@@ -23,12 +23,12 @@ public abstract class BaseTest {
     protected AuthorizationPage authPage = new AuthorizationPage();
     protected MainPage mainPage = new MainPage();
 
-    // Метод выполняется перед каждым тестом: регистрирует ресурсы и ждет запуск приложения
+    // Метод выполняется перед каждым тестом
     @Before
     public void setUp() {
     }
 
-    // Метод выполняется после каждого теста: очищает зарегистрированные ресурсы
+    // Метод выполняется после каждого теста
     @After
     public void tearDown() {
     }

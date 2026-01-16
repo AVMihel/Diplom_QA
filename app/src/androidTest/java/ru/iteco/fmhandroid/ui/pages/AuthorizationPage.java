@@ -13,6 +13,8 @@ import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.endsWith;
 
+import androidx.test.espresso.ViewInteraction;
+
 import ru.iteco.fmhandroid.R;
 import ru.iteco.fmhandroid.ui.utils.WaitUtils;
 
@@ -21,7 +23,6 @@ public class AuthorizationPage {
 
     // Проверяет, что экран авторизации отображается
     public void checkAuthorizationScreenIsDisplayed() {
-        // Простая проверка по полю логина
         WaitUtils.waitForElementWithId(R.id.login_text_input_layout, 10000);
     }
 
@@ -41,7 +42,7 @@ public class AuthorizationPage {
         )).perform(replaceText(password), closeSoftKeyboard());
     }
 
-    // Нажимает кнопку "Sign in" для выполнения авторизации
+    // Нажимает кнопку "SIGN IN" для выполнения авторизации
     public void clickSignInButton() {
         onView(allOf(withId(R.id.enter_button), withText("Sign in"), isDisplayed()))
                 .perform(click());
@@ -60,9 +61,40 @@ public class AuthorizationPage {
         checkAuthorizationScreenIsDisplayed();
     }
 
-    // Проверяет, что отображается ошибка валидации (кнопка "Sign in" все еще видна)
+    // Проверяет, что отображается ошибка валидации (кнопка "SIGN IN" все еще видна)
     public void checkValidationErrorIsDisplayed() {
         onView(allOf(withId(R.id.enter_button), withText("Sign in"), isDisplayed()))
                 .check(matches(isDisplayed()));
+    }
+
+    // Проверяет, что поле логина пустое
+    public AuthorizationPage checkLoginFieldIsEmpty() {
+        ViewInteraction loginField = onView(allOf(
+                withClassName(endsWith("EditText")),
+                isDescendantOfA(withId(R.id.login_text_input_layout))
+        ));
+
+        WaitUtils.waitForElement(loginField, 3000);
+        loginField.check(matches(withText("")));
+        return this;
+    }
+
+    // Проверяет, что поле пароля пустое
+    public AuthorizationPage checkPasswordFieldIsEmpty() {
+        ViewInteraction passwordField = onView(allOf(
+                withClassName(endsWith("EditText")),
+                isDescendantOfA(withId(R.id.password_text_input_layout))
+        ));
+
+        WaitUtils.waitForElement(passwordField, 3000);
+        passwordField.check(matches(withText("")));
+        return this;
+    }
+
+    // Проверяет, что оба поля пустые (после выхода)
+    public void checkAllFieldsAreEmpty() {
+        checkAuthorizationScreenIsDisplayed();
+        checkLoginFieldIsEmpty();
+        checkPasswordFieldIsEmpty();
     }
 }

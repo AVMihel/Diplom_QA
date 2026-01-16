@@ -30,20 +30,17 @@ public class NavigationTest extends BaseTest {
 
     @Before
     public void setUpTest() {
-        // Выполняем авторизацию перед каждым тестом навигации
         performLoginAndGoToMainScreen();
     }
 
     @After
     public void tearDownTest() {
-        // Выходим из системы после каждого теста навигации для чистого состояния
         try {
             if (mainPage.isMainScreenDisplayed()) {
                 mainPage.forceLogout();
                 authPage.checkAuthorizationScreenIsDisplayed();
             }
         } catch (Exception e) {
-            // Игнорируем ошибки выхода - состояние очистится в следующем тесте
         }
     }
 
@@ -114,7 +111,7 @@ public class NavigationTest extends BaseTest {
 
         // 1. Переходим в раздел Quotes через кнопку на верхней панели
         mainPage.clickQuotesButton();
-        mainPage.checkQuotesScreenIsDisplayed();
+        mainPage.verifyQuotesScreenOpened(); // ← ОБНОВЛЕНО
 
         // 2. Возвращаемся на главный экран через боковое меню
         navigationDrawer.openMenu().clickMainMenuItem();
@@ -135,7 +132,7 @@ public class NavigationTest extends BaseTest {
 
         // 1. Переходим в раздел Quotes через верхнюю панель
         mainPage.clickQuotesButton();
-        mainPage.checkQuotesScreenIsDisplayed();
+        mainPage.verifyQuotesScreenOpened(); // ← ОБНОВЛЕНО
 
         // 2. Открываем боковое меню и проверяем состояние пунктов
         navigationDrawer.openMenu().checkMenuIsDisplayed();

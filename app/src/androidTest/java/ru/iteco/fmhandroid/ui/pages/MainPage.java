@@ -48,8 +48,8 @@ public class MainPage {
         return this;
     }
 
-    // Проверяет отображение экрана Quotes по заголовку "Love is all"
-    public MainPage checkQuotesScreenIsDisplayed() {
+    // Проверяет успешный переход на экран Quotes после нажатия кнопки
+    public MainPage verifyQuotesScreenOpened() {
         WaitUtils.waitForElementWithId(R.id.our_mission_title_text_view, 10000);
         onView(withId(R.id.our_mission_title_text_view)).check(matches(withText("Love is all")));
         return this;
@@ -99,7 +99,6 @@ public class MainPage {
                         .perform(click());
                 onView(withText("Log out")).perform(click());
             } catch (Exception ex) {
-                // Игнорируем
             }
         }
     }

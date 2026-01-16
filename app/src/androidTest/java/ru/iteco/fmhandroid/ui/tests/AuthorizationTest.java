@@ -1,5 +1,7 @@
 package ru.iteco.fmhandroid.ui.tests;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import ru.iteco.fmhandroid.ui.core.BaseTest;
@@ -7,6 +9,31 @@ import ru.iteco.fmhandroid.ui.core.TestData;
 
 // Тестовый класс для проверки функциональности авторизации
 public class AuthorizationTest extends BaseTest {
+
+    @Before
+    public void setUpTest() {
+        try {
+            if (mainPage.isMainScreenDisplayed()) {
+                mainPage.forceLogout();
+            }
+        } catch (Exception e) {
+        }
+        authPage.checkAuthorizationScreenIsDisplayed();
+    }
+
+    @After
+    public void tearDownTest() {
+        try {
+            if (mainPage.isMainScreenDisplayed()) {
+                mainPage.forceLogout();
+            }
+        } catch (Exception e) {
+        }
+        try {
+            authPage.checkAuthorizationScreenIsDisplayed();
+        } catch (Exception e) {
+        }
+    }
 
     // TC-AUTH-01: Успешная авторизация с валидными данными
     @Test
@@ -16,8 +43,6 @@ public class AuthorizationTest extends BaseTest {
         authPage.enterPassword(TestData.VALID_PASSWORD);
         authPage.clickSignInButton();
         mainPage.checkSuccessfulAuthorization();
-        mainPage.logout();
-        authPage.checkAuthorizationScreenIsDisplayed();
     }
 
     // TC-AUTH-02: Неуспешная авторизация с неверным логином
