@@ -8,107 +8,129 @@ import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.Matchers.allOf;
 
+import android.os.SystemClock;
+
 import androidx.test.espresso.ViewInteraction;
 
 import ru.iteco.fmhandroid.R;
 import ru.iteco.fmhandroid.ui.utils.WaitUtils;
 
-// Page Object для работы с главным экраном приложения
 public class MainPage {
-
-    // Элементы верхней панели
-    private final ViewInteraction quotesButton = onView(
-            allOf(withId(R.id.our_mission_image_button), isDisplayed())
-    );
 
     private final ViewInteraction logoutButton = onView(
             allOf(withId(R.id.authorization_image_button), isDisplayed())
     );
 
-    private final ViewInteraction menuButton = onView(
-            allOf(withId(R.id.main_menu_image_button), isDisplayed())
+    private final ViewInteraction allNewsButtonOnMain = onView(
+            allOf(withId(R.id.all_news_text_view), withText("ALL NEWS"), isDisplayed())
     );
 
-    // Проверяет отображение главного экрана по наличию кнопки меню
+    // Быстрая проверка главного экрана
+    public boolean isMainScreenDisplayedQuick(long timeout) {
+        long endTime = SystemClock.uptimeMillis() + timeout;
+        while (SystemClock.uptimeMillis() < endTime) {
+            try {
+                allNewsButtonOnMain.check(matches(isDisplayed()));
+                return true;
+            } catch (Exception e) {
+                SystemClock.sleep(50);
+            }
+        }
+        return false;
+    }
+
+    // Проверяет, что главный экран отображается
     public MainPage checkMainScreenIsDisplayed() {
-        WaitUtils.waitForElement(menuButton, 10000);
+        WaitUtils.waitForElement(allNewsButtonOnMain, 5000);
         return this;
     }
 
-    // Проверяет отображение экрана News по тексту заголовка
+    // Проверяет, что экран News отображается
     public MainPage checkNewsScreenIsDisplayed() {
-        WaitUtils.waitForElementWithText("News", 10000);
+        WaitUtils.waitForElementWithText("News", 3000);
         return this;
     }
 
-    // Проверяет отображение экрана About по тексту "Version:"
+    // Проверяет, что экран About отображается
     public MainPage checkAboutScreenIsDisplayed() {
-        WaitUtils.waitForElementWithId(R.id.about_version_title_text_view, 10000);
+        WaitUtils.waitForElementWithId(R.id.about_version_title_text_view, 3000);
         onView(withId(R.id.about_version_title_text_view)).check(matches(withText("Version:")));
         return this;
     }
 
-    // Проверяет успешный переход на экран Quotes после нажатия кнопки
-    public MainPage verifyQuotesScreenOpened() {
-        WaitUtils.waitForElementWithId(R.id.our_mission_title_text_view, 10000);
+    // Проверяет, что экран Quotes успешно открылся
+    public MainPage checkQuotesScreenIsDisplayed() {
+        WaitUtils.waitForElementWithId(R.id.our_mission_title_text_view, 3000);
         onView(withId(R.id.our_mission_title_text_view)).check(matches(withText("Love is all")));
         return this;
     }
 
-    // Кликает по кнопке перехода в раздел Quotes (иконка Our Mission)
-    public void clickQuotesButton() {
-        WaitUtils.waitForElement(quotesButton, 5000);
-        quotesButton.perform(click());
-    }
-
-    // Выполняет выход из системы через меню авторизации
-    public void logout() {
-        clickAuthorizationMenuButton();
-        WaitUtils.waitForElementWithText("Log out", 3000);
-        onView(withText("Log out")).perform(click());
-    }
-
-    // Кликает по кнопке меню авторизации (вспомогательный метод для logout)
-    private void clickAuthorizationMenuButton() {
-        WaitUtils.waitForElement(logoutButton, 5000);
-        logoutButton.perform(click());
-    }
-
-    // Проверяет успешную авторизацию (пользователь на главном экране)
-    public void checkSuccessfulAuthorization() {
-        checkMainScreenIsDisplayed();
-    }
-
-    // Проверяет отображение главного экрана (без выброса исключения)
-    public boolean isMainScreenDisplayed() {
-        try {
-            checkMainScreenIsDisplayed();
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
-    // Выполняет принудительный выход из системы (с обработкой ошибок)
-    public void forceLogout() {
-        try {
-            logout();
-        } catch (Exception e) {
-            try {
-                onView(allOf(withId(R.id.authorization_image_button), isDisplayed()))
-                        .perform(click());
-                onView(withText("Log out")).perform(click());
-            } catch (Exception ex) {
-            }
-        }
-    }
-
     // Проверяет, что блок новостей отображается на главной странице
-    public MainPage checkNewsBlockIsDisplayed() {
+    public MainPage checkNewsBlockOnMainIsDisplayed() {
         ViewInteraction newsBlock = onView(
                 allOf(withId(R.id.container_list_news_include_on_fragment_main), isDisplayed())
         );
-        WaitUtils.waitForElement(newsBlock, 5000);
+        WaitUtils.waitForElement(newsBlock, 2000);
         return this;
+    }
+
+    // Кликает по кнопке перехода в раздел Quotes
+    public MainPage clickQuotesButton() {
+        ViewInteraction quotesButton = onView(
+                allOf(withId(R.id.our_mission_image_button), isDisplayed())
+        );
+        WaitUtils.waitForElement(quotesButton, 2000);
+        quotesButton.perform(click());
+        return this;
+    }
+
+    // Выполняет выход из системы (с проверкой ошибок)
+    public void logout() {
+        WaitUtils.waitForElement(logoutButton, 2000);
+        logoutButton.perform(click());
+        WaitUtils.waitForElementWithText("Log out", 2000);
+        onView(withText("Log out")).perform(click());
+    }
+
+    // Безопасно пытается выйти из системы (без исключений)
+    public void tryToLogout() {
+        try {
+            if (isElementDisplayedQuickly(logoutButton, 1500)) {
+                logoutButton.perform(click());
+                Thread.sleep(300);
+                if (isElementWithTextDisplayedQuickly("Log out", 1500)) {
+                    onView(withText("Log out")).perform(click());
+                }
+            }
+        } catch (Exception e) {
+        }
+    }
+
+    // Быстрая проверка отображения элемента
+    private boolean isElementDisplayedQuickly(ViewInteraction view, long timeout) {
+        long endTime = SystemClock.uptimeMillis() + timeout;
+        while (SystemClock.uptimeMillis() < endTime) {
+            try {
+                view.check(matches(isDisplayed()));
+                return true;
+            } catch (Exception e) {
+                SystemClock.sleep(50);
+            }
+        }
+        return false;
+    }
+
+    // Быстрая проверка отображения элемента по тексту
+    private boolean isElementWithTextDisplayedQuickly(String text, long timeout) {
+        long endTime = SystemClock.uptimeMillis() + timeout;
+        while (SystemClock.uptimeMillis() < endTime) {
+            try {
+                onView(withText(text)).check(matches(isDisplayed()));
+                return true;
+            } catch (Exception e) {
+                SystemClock.sleep(50);
+            }
+        }
+        return false;
     }
 }

@@ -11,11 +11,9 @@ import ru.iteco.fmhandroid.ui.AppActivity;
 import ru.iteco.fmhandroid.ui.pages.AuthorizationPage;
 import ru.iteco.fmhandroid.ui.pages.MainPage;
 
-// Базовый класс для всех тестов, содержащий общую настройку и утилитные методы
 @LargeTest
 public abstract class BaseTest {
 
-    // Правило для запуска активности перед каждым тестом
     @Rule
     public ActivityScenarioRule<AppActivity> activityRule =
             new ActivityScenarioRule<>(AppActivity.class);
@@ -23,30 +21,51 @@ public abstract class BaseTest {
     protected AuthorizationPage authPage = new AuthorizationPage();
     protected MainPage mainPage = new MainPage();
 
-    // Метод выполняется перед каждым тестом
     @Before
     public void setUp() {
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        boolean isOnAuthScreen = authPage.isAuthScreenDisplayedQuick(2000);
+
+        if (!isOnAuthScreen) {
+            boolean isOnMainScreen = mainPage.isMainScreenDisplayedQuick(2000);
+            if (isOnMainScreen) {
+                mainPage.tryToLogout();
+                authPage.checkAuthorizationScreenIsDisplayed();
+            } else {
+                authPage.checkAuthorizationScreenIsDisplayed();
+            }
+        }
     }
 
-    // Метод выполняется после каждого теста
     @After
     public void tearDown() {
+        try {
+            if (mainPage.isMainScreenDisplayedQuick(1500)) {
+                mainPage.tryToLogout();
+            }
+        } catch (Exception e) {
+        }
     }
 
-    // Выполняет авторизацию с валидными данными и проверяет переход на главный экран
-    protected void performLoginAndGoToMainScreen() {
+    // Авторизация и переход на главный экран
+    protected void loginAndGoToMainScreen() {
+        authPage.checkAuthorizationScreenIsDisplayed();
+        authPage.login(TestData.VALID_LOGIN, TestData.VALID_PASSWORD);
+        mainPage.checkMainScreenIsDisplayed();
+    }
+
+    // Гарантирует, что мы на главном экране
+    protected void ensureOnMainScreen() {
         try {
-            // Всегда начинаем с экрана авторизации
-            authPage.checkAuthorizationScreenIsDisplayed();
-
-            // Авторизуемся
-            authPage.login(TestData.VALID_LOGIN, TestData.VALID_PASSWORD);
-
-            // Проверяем успешный вход
-            mainPage.checkMainScreenIsDisplayed();
-
+            if (mainPage.isMainScreenDisplayedQuick(2000)) {
+                return;
+            }
         } catch (Exception e) {
-            throw new RuntimeException("Failed to perform login", e);
         }
+        loginAndGoToMainScreen();
     }
 }

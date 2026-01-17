@@ -14,7 +14,6 @@ import androidx.test.espresso.ViewInteraction;
 import ru.iteco.fmhandroid.R;
 import ru.iteco.fmhandroid.ui.utils.WaitUtils;
 
-// Page Object для работы с разделом Quotes (цитаты)
 public class QuotesPage {
 
     // Элементы экрана Quotes
@@ -28,14 +27,14 @@ public class QuotesPage {
 
     // Проверяет, что экран Quotes отображается
     public QuotesPage checkQuotesScreenIsDisplayed() {
-        WaitUtils.waitForElement(quotesTitle, 10000);
+        WaitUtils.waitForElement(quotesTitle, 4000);
         quotesTitle.check(matches(withText("Love is all")));
         return this;
     }
 
     // Проверяет, что список цитат отображается
     public QuotesPage checkQuotesListIsDisplayed() {
-        WaitUtils.waitForElement(quotesRecyclerView, 5000);
+        WaitUtils.waitForElement(quotesRecyclerView, 3000);
         return this;
     }
 
@@ -61,14 +60,13 @@ public class QuotesPage {
                 )
         );
 
-        // Даем время на анимацию
-        WaitUtils.waitForElement(descriptionView, 3000);
+        WaitUtils.waitForElement(descriptionView, 1500);
         return this;
     }
 
     // Проверяет, что описание цитаты скрыто (свернутое состояние)
     public QuotesPage checkQuoteDescriptionIsHidden() {
-        WaitUtils.waitForElement(quotesRecyclerView, 2000);
+        WaitUtils.waitForElement(quotesRecyclerView, 1000);
         return this;
     }
 

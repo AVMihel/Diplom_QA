@@ -1,66 +1,56 @@
 package ru.iteco.fmhandroid.ui.tests;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import ru.iteco.fmhandroid.ui.core.BaseTest;
 import ru.iteco.fmhandroid.ui.pages.NewsPage;
 
-// Тестовый класс для проверки блока новостей на главной странице
 public class NewsMainTest extends BaseTest {
 
     private final NewsPage newsPage = new NewsPage();
 
-    @Before
-    public void setUpTest() {
-        performLoginAndGoToMainScreen();
-
-        mainPage.checkMainScreenIsDisplayed();
-        mainPage.checkNewsBlockIsDisplayed();
-    }
-
-    @After
-    public void tearDownTest() {
-        try {
-            if (mainPage.isMainScreenDisplayed()) {
-                mainPage.forceLogout();
-                authPage.checkAuthorizationScreenIsDisplayed();
-            }
-        } catch (Exception e) {
-        }
-    }
-
     // TC-NEWS-MAIN-01: Навигация с главного экрана к списку новостей
     @Test
     public void testNavigationFromMainToNewsList() {
-        // 1. Проверяем, что кнопка "ALL NEWS" отображается на главной странице
+        // 1. Гарантируем, что мы на главном экране
+        ensureOnMainScreen();
+
+        // 2. Проверяем блок новостей на главной
+        mainPage.checkNewsBlockOnMainIsDisplayed();
+
+        // 3. Проверяем кнопку "ALL NEWS"
         newsPage.checkAllNewsButtonIsDisplayed();
 
-        // 2. Нажимаем кнопку "ALL NEWS" для перехода к полному списку новостей
+        // 4. Нажимаем кнопку "ALL NEWS"
         newsPage.clickAllNewsButton();
 
-        // 3. Проверяем переход на экран списка новостей (по наличию кнопки сортировки)
+        // 5. Проверяем переход к списку новостей
         newsPage.checkNewsListScreenIsDisplayed();
     }
 
     // TC-NEWS-MAIN-02: Сворачивание/разворачивание блока "News" на главной
     @Test
     public void testCollapseExpandNewsBlockOnMainPage() {
-        // 1. Проверяем, что кнопка "ALL NEWS" и кнопка сворачивания отображаются
+        // 1. Гарантируем, что мы на главном экране
+        ensureOnMainScreen();
+
+        // 2. Проверяем блок новостей на главной
+        mainPage.checkNewsBlockOnMainIsDisplayed();
+
+        // 3. Проверяем элементы управления блоком News
         newsPage.checkAllNewsButtonIsDisplayed()
                 .checkExpandNewsButtonIsDisplayed();
 
-        // 2. Нажимаем кнопку сворачивания (стрелка) - блок сворачивается
+        // 4. Сворачиваем блок новостей
         newsPage.clickExpandNewsButton();
 
-        // 3. Проверяем, что кнопка "ALL NEWS" скрылась после сворачивания
+        // 5. Проверяем, что кнопка "ALL NEWS" скрыта
         newsPage.checkAllNewsButtonIsHidden();
 
-        // 4. Снова нажимаем кнопку сворачивания (стрелка) - блок разворачивается
+        // 6. Разворачиваем блок новостей
         newsPage.clickExpandNewsButton();
 
-        // 5. Проверяем, что кнопка "ALL NEWS" снова отображается после разворачивания
+        // 7. Проверяем, что кнопка "ALL NEWS" отображается
         newsPage.checkAllNewsButtonIsVisible();
     }
 }

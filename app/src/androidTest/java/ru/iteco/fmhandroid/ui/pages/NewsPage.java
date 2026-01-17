@@ -13,7 +13,6 @@ import androidx.test.espresso.ViewInteraction;
 import ru.iteco.fmhandroid.R;
 import ru.iteco.fmhandroid.ui.utils.WaitUtils;
 
-// Page Object для работы с блоком новостей на главной странице
 public class NewsPage {
 
     // Элементы блока News на главной странице
@@ -35,35 +34,35 @@ public class NewsPage {
 
     // Проверяет отображение кнопки "ALL NEWS" на главной странице
     public NewsPage checkAllNewsButtonIsDisplayed() {
-        WaitUtils.waitForElement(allNewsTitleTextView, 5000);
+        WaitUtils.waitForElement(allNewsTitleTextView, 3000);
         allNewsTitleTextView.check(matches(withText("ALL NEWS")));
         return this;
     }
 
     // Нажимает кнопку "ALL NEWS" для перехода к полному списку новостей
     public NewsPage clickAllNewsButton() {
-        WaitUtils.waitForElement(allNewsTextView, 5000);
+        WaitUtils.waitForElement(allNewsTextView, 2000);
         allNewsTextView.perform(click());
         return this;
     }
 
     // Проверяет переход на экран списка новостей (по наличию кнопки сортировки)
     public NewsPage checkNewsListScreenIsDisplayed() {
-        WaitUtils.waitForElement(sortNewsButton, 5000);
+        WaitUtils.waitForElement(sortNewsButton, 3000);
         sortNewsButton.check(matches(isDisplayed()));
         return this;
     }
 
     // Проверяет отображение кнопки сворачивания/разворачивания блока News
     public NewsPage checkExpandNewsButtonIsDisplayed() {
-        WaitUtils.waitForElement(expandNewsButton, 5000);
+        WaitUtils.waitForElement(expandNewsButton, 2000);
         expandNewsButton.check(matches(isDisplayed()));
         return this;
     }
 
     // Нажимает кнопку сворачивания/разворачивания блока News
     public NewsPage clickExpandNewsButton() {
-        WaitUtils.waitForElement(expandNewsButton, 5000);
+        WaitUtils.waitForElement(expandNewsButton, 2000);
         expandNewsButton.perform(click());
         return this;
     }
@@ -71,7 +70,7 @@ public class NewsPage {
     // Проверяет, что кнопка "ALL NEWS" скрыта (после разворачивания блока)
     public NewsPage checkAllNewsButtonIsHidden() {
         try {
-            allNewsTitleTextView.check(matches(isDisplayed()));
+            WaitUtils.waitForElement(allNewsTitleTextView, 1000);
             throw new AssertionError("The 'ALL NEWS' button should be hidden after the block is expanded.");
         } catch (Exception e) {
             // Ожидаемое поведение - элемент не найден
@@ -81,7 +80,7 @@ public class NewsPage {
 
     // Проверяет, что кнопка "ALL NEWS" отображается (после сворачивания блока)
     public NewsPage checkAllNewsButtonIsVisible() {
-        WaitUtils.waitForElement(allNewsTitleTextView, 3000);
+        WaitUtils.waitForElement(allNewsTitleTextView, 2000);
         allNewsTitleTextView.check(matches(isDisplayed()));
         return this;
     }
