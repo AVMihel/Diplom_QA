@@ -16,7 +16,6 @@ import ru.iteco.fmhandroid.ui.utils.WaitUtils;
 
 public class QuotesPage {
 
-    // Элементы экрана Quotes
     private final ViewInteraction quotesTitle = onView(
             allOf(withId(R.id.our_mission_title_text_view), withText("Love is all"))
     );
@@ -28,7 +27,6 @@ public class QuotesPage {
     // Проверяет, что экран Quotes отображается
     public QuotesPage checkQuotesScreenIsDisplayed() {
         WaitUtils.waitForElement(quotesTitle, 4000);
-        quotesTitle.check(matches(withText("Love is all")));
         return this;
     }
 
@@ -66,25 +64,27 @@ public class QuotesPage {
 
     // Проверяет, что описание цитаты скрыто (свернутое состояние)
     public QuotesPage checkQuoteDescriptionIsHidden() {
-        WaitUtils.waitForElement(quotesRecyclerView, 1000);
+        try {
+            onView(withId(R.id.our_mission_item_description_text_view)).check(matches(isDisplayed()));
+            throw new AssertionError("Quote description should be hidden");
+        } catch (Exception e) {
+            // Ожидаемое поведение - элемент не найден
+        }
         return this;
     }
 
     // Выполняет полный цикл: развернуть и свернуть цитату
     public QuotesPage expandAndCollapseQuote(int position) {
-        // 1. Проверяем начальное состояние
-        checkQuotesListIsDisplayed();
-
-        // 2. Разворачиваем цитату
+        // 1. Разворачиваем цитату
         expandQuoteAtPosition(position);
 
-        // 3. Проверяем, что описание отображается
+        // 2. Проверяем, что описание отображается
         checkQuoteDescriptionIsDisplayedAtPosition(position);
 
-        // 4. Снова кликаем, чтобы свернуть
+        // 3. Снова кликаем, чтобы свернуть
         expandQuoteAtPosition(position);
 
-        // 5. Проверяем, что описание скрыто
+        // 4. Проверяем, что описание скрыто
         checkQuoteDescriptionIsHidden();
 
         return this;

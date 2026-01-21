@@ -10,7 +10,7 @@ public class AuthorizationTest extends BaseTest {
     // TC-AUTH-01: Успешная авторизация с валидными данными
     @Test
     public void testSuccessfulAuthorizationWithValidCredentials() {
-        // 1. BaseTest.setUp() гарантирует, что мы на экране авторизации
+        // 1. Проверяем экран авторизации
         authPage.checkAuthorizationScreenIsDisplayed();
 
         // 2. Вводим валидный логин

@@ -14,7 +14,7 @@ import ru.iteco.fmhandroid.ui.utils.WaitUtils;
 
 public class NavigationDrawerPage {
 
-    // Открывает боковое меню (кликает по кнопке "гамбургер")
+    // Открытие бокового меню
     public NavigationDrawerPage openMenu() {
         ViewInteraction menuButton = onView(
                 allOf(withId(R.id.main_menu_image_button),
@@ -25,13 +25,13 @@ public class NavigationDrawerPage {
         return this;
     }
 
-    // Проверяет, что меню открыто (по наличию текста "Main")
+    // Проверка отображения меню
     public NavigationDrawerPage checkMenuIsDisplayed() {
         WaitUtils.waitForElementWithText("Main", 1500);
         return this;
     }
 
-    // Проверяет отображение пункта меню "Main"
+    // Проверка отображения пункта меню "Main"
     public NavigationDrawerPage checkMainMenuItemIsDisplayed() {
         ViewInteraction mainItem = onView(
                 allOf(withId(android.R.id.title), withText("Main"), isDisplayed())
@@ -40,7 +40,7 @@ public class NavigationDrawerPage {
         return this;
     }
 
-    // Проверяет отображение пункта меню "News"
+    // Проверка отображения пункта меню "News"
     public NavigationDrawerPage checkNewsMenuItemIsDisplayed() {
         ViewInteraction newsItem = onView(
                 allOf(withId(android.R.id.title), withText("News"), isDisplayed())
@@ -49,7 +49,7 @@ public class NavigationDrawerPage {
         return this;
     }
 
-    // Проверяет отображение пункта меню "About"
+    // Проверка отображения пункта меню "About"
     public NavigationDrawerPage checkAboutMenuItemIsDisplayed() {
         ViewInteraction aboutItem = onView(
                 allOf(withId(android.R.id.title), withText("About"), isDisplayed())
@@ -58,7 +58,7 @@ public class NavigationDrawerPage {
         return this;
     }
 
-    // Кликает по пункту меню "Main" для перехода на главный экран
+    // Клик по пункту меню "Main"
     public NavigationDrawerPage clickMainMenuItem() {
         ViewInteraction mainItem = onView(
                 allOf(withId(android.R.id.title), withText("Main"), isDisplayed())
@@ -68,7 +68,7 @@ public class NavigationDrawerPage {
         return this;
     }
 
-    // Кликает по пункту меню "News" для перехода в раздел новостей
+    // Клик по пункту меню "News"
     public NavigationDrawerPage clickNewsMenuItem() {
         ViewInteraction newsItem = onView(
                 allOf(withId(android.R.id.title), withText("News"), isDisplayed())
@@ -78,7 +78,7 @@ public class NavigationDrawerPage {
         return this;
     }
 
-    // Кликает по пункту меню "About" для перехода в раздел "О приложении"
+    // Клик по пункту меню "About"
     public NavigationDrawerPage clickAboutMenuItem() {
         ViewInteraction aboutItem = onView(
                 allOf(withId(android.R.id.title), withText("About"), isDisplayed())

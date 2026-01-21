@@ -66,9 +66,9 @@ public class QuotesAboutLogoutTest extends BaseTest {
         quotesPage.checkQuotesScreenIsDisplayed();
 
         // 4. Проверяем разворачивание/сворачивание нескольких цитат
-        quotesPage.expandAndCollapseQuote(0); // Первая цитата
-        quotesPage.expandAndCollapseQuote(1); // Вторая цитата
-        quotesPage.expandAndCollapseQuote(2); // Третья цитата
+        quotesPage.expandAndCollapseQuote(0);
+        quotesPage.expandAndCollapseQuote(1);
+        quotesPage.expandAndCollapseQuote(2);
 
         // 5. Возвращаемся на главный экран
         quotesPage.goBackToMainScreen();

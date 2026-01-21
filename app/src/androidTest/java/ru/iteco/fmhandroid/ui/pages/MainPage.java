@@ -25,7 +25,7 @@ public class MainPage {
             allOf(withId(R.id.all_news_text_view), withText("ALL NEWS"), isDisplayed())
     );
 
-    // Быстрая проверка главного экрана
+    // Быстрая проверка отображения главного экрана
     public boolean isMainScreenDisplayedQuick(long timeout) {
         long endTime = SystemClock.uptimeMillis() + timeout;
         while (SystemClock.uptimeMillis() < endTime) {
@@ -39,33 +39,33 @@ public class MainPage {
         return false;
     }
 
-    // Проверяет, что главный экран отображается
+    // Проверка отображения главного экрана
     public MainPage checkMainScreenIsDisplayed() {
         WaitUtils.waitForElement(allNewsButtonOnMain, 5000);
         return this;
     }
 
-    // Проверяет, что экран News отображается
+    // Проверка отображения экрана новостей
     public MainPage checkNewsScreenIsDisplayed() {
         WaitUtils.waitForElementWithText("News", 3000);
         return this;
     }
 
-    // Проверяет, что экран About отображается
+    // Проверка отображения экрана "О приложении"
     public MainPage checkAboutScreenIsDisplayed() {
         WaitUtils.waitForElementWithId(R.id.about_version_title_text_view, 3000);
         onView(withId(R.id.about_version_title_text_view)).check(matches(withText("Version:")));
         return this;
     }
 
-    // Проверяет, что экран Quotes успешно открылся
+    // Проверка отображения экрана цитат
     public MainPage checkQuotesScreenIsDisplayed() {
         WaitUtils.waitForElementWithId(R.id.our_mission_title_text_view, 3000);
         onView(withId(R.id.our_mission_title_text_view)).check(matches(withText("Love is all")));
         return this;
     }
 
-    // Проверяет, что блок новостей отображается на главной странице
+    // Проверка отображения блока новостей на главном экране
     public MainPage checkNewsBlockOnMainIsDisplayed() {
         ViewInteraction newsBlock = onView(
                 allOf(withId(R.id.container_list_news_include_on_fragment_main), isDisplayed())
@@ -74,7 +74,7 @@ public class MainPage {
         return this;
     }
 
-    // Кликает по кнопке перехода в раздел Quotes
+    // Клик по кнопке цитат
     public MainPage clickQuotesButton() {
         ViewInteraction quotesButton = onView(
                 allOf(withId(R.id.our_mission_image_button), isDisplayed())
@@ -84,7 +84,7 @@ public class MainPage {
         return this;
     }
 
-    // Выполняет выход из системы (с проверкой ошибок)
+    // Выход из приложения
     public void logout() {
         WaitUtils.waitForElement(logoutButton, 2000);
         logoutButton.perform(click());
@@ -92,7 +92,7 @@ public class MainPage {
         onView(withText("Log out")).perform(click());
     }
 
-    // Безопасно пытается выйти из системы (без исключений)
+    // Попытка выхода из приложения (безопасный метод)
     public void tryToLogout() {
         try {
             if (isElementDisplayedQuickly(logoutButton, 1500)) {
@@ -103,6 +103,7 @@ public class MainPage {
                 }
             }
         } catch (Exception e) {
+            // Игнорируем
         }
     }
 
@@ -120,7 +121,7 @@ public class MainPage {
         return false;
     }
 
-    // Быстрая проверка отображения элемента по тексту
+    // Быстрая проверка отображения элемента с текстом
     private boolean isElementWithTextDisplayedQuickly(String text, long timeout) {
         long endTime = SystemClock.uptimeMillis() + timeout;
         while (SystemClock.uptimeMillis() < endTime) {
