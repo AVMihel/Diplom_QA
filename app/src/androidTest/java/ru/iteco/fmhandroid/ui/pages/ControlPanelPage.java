@@ -287,33 +287,35 @@ public class ControlPanelPage {
         return false;
     }
 
-    // Поиск новости по заголовку с прокруткой списка
     public boolean findNewsByTitleWithScroll(String title) {
-        int maxScrollAttempts = 5;
+        // Ждем загрузки списка
+        WaitUtils.waitForMillis(2000);
 
-        for (int attempt = 0; attempt < maxScrollAttempts; attempt++) {
+        // Пробуем найти без прокрутки
+        try {
+            onView(allOf(
+                    withId(R.id.news_item_title_text_view),
+                    withText(title),
+                    isDisplayed()
+            )).check(matches(isDisplayed()));
+            return true;
+        } catch (Exception e) {
+            // Если не нашли, делаем одну прокрутку вниз и пробуем снова
             try {
-                onView(allOf(withId(R.id.news_item_title_text_view),
+                onView(withId(R.id.news_list_recycler_view))
+                        .perform(androidx.test.espresso.action.ViewActions.swipeUp());
+                WaitUtils.waitForMillis(1000);
+
+                onView(allOf(
+                        withId(R.id.news_item_title_text_view),
                         withText(title),
-                        isDisplayed()))
-                        .check(matches(isDisplayed()));
+                        isDisplayed()
+                )).check(matches(isDisplayed()));
                 return true;
-            } catch (Exception e) {
-                try {
-                    if (attempt % 2 == 0) {
-                        onView(withId(R.id.news_list_recycler_view))
-                                .perform(androidx.test.espresso.action.ViewActions.swipeUp());
-                    } else {
-                        onView(withId(R.id.news_list_recycler_view))
-                                .perform(androidx.test.espresso.action.ViewActions.swipeDown());
-                    }
-                    WaitUtils.waitForMillis(1000);
-                } catch (Exception scrollEx) {
-                    break;
-                }
+            } catch (Exception ex) {
+                return false;
             }
         }
-        return false;
     }
 
     // Проверка отображения новости с указанным заголовком
