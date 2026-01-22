@@ -10,10 +10,16 @@ import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withClassName;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
-import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.endsWith;
+import static org.hamcrest.CoreMatchers.allOf;
+import static org.hamcrest.CoreMatchers.endsWith;
 
 import android.os.SystemClock;
+import android.view.View;
+
+import androidx.test.espresso.UiController;
+import androidx.test.espresso.ViewAction;
+
+import org.hamcrest.Matcher;
 
 import ru.iteco.fmhandroid.R;
 import ru.iteco.fmhandroid.ui.utils.WaitUtils;
@@ -95,5 +101,79 @@ public class AuthorizationPage {
                 withClassName(endsWith("EditText")),
                 isDescendantOfA(withId(R.id.password_text_input_layout))
         )).check(matches(withText("")));
+    }
+
+    // Получить текст из поля логина
+    public String getLoginText() {
+        try {
+            final String[] text = new String[1];
+            onView(allOf(
+                    withClassName(endsWith("EditText")),
+                    isDescendantOfA(withId(R.id.login_text_input_layout))
+            )).perform(new ViewAction() {
+                @Override
+                public Matcher<View> getConstraints() {
+                    return isDisplayed();
+                }
+
+                @Override
+                public String getDescription() {
+                    return "Get text from login field";
+                }
+
+                @Override
+                public void perform(UiController uiController, View view) {
+                    if (view instanceof android.widget.EditText) {
+                        text[0] = ((android.widget.EditText) view).getText().toString();
+                    }
+                }
+            });
+            return text[0] != null ? text[0] : "";
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    // Получить текст из поля пароля
+    public String getPasswordText() {
+        try {
+            final String[] text = new String[1];
+            onView(allOf(
+                    withClassName(endsWith("EditText")),
+                    isDescendantOfA(withId(R.id.password_text_input_layout))
+            )).perform(new ViewAction() {
+                @Override
+                public Matcher<View> getConstraints() {
+                    return isDisplayed();
+                }
+
+                @Override
+                public String getDescription() {
+                    return "Get text from password field";
+                }
+
+                @Override
+                public void perform(UiController uiController, View view) {
+                    if (view instanceof android.widget.EditText) {
+                        text[0] = ((android.widget.EditText) view).getText().toString();
+                    }
+                }
+            });
+            return text[0] != null ? text[0] : "";
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    // Проверить что поле логина содержит текст
+    public boolean isLoginFieldNotEmpty() {
+        String text = getLoginText();
+        return text != null && !text.trim().isEmpty();
+    }
+
+    // Проверить что поле пароля содержит текст
+    public boolean isPasswordFieldNotEmpty() {
+        String text = getPasswordText();
+        return text != null && !text.trim().isEmpty();
     }
 }

@@ -1,5 +1,7 @@
 package ru.iteco.fmhandroid.ui.core;
 
+import static ru.iteco.fmhandroid.ui.core.TestData.News.CATEGORY_BIRTHDAY;
+
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
@@ -38,7 +40,7 @@ public class TestData {
         );
 
         // Получение даты в будущем в формате dd.MM.yyyy
-        private static String getFutureDate(int daysToAdd) {
+        public static String getFutureDate(int daysToAdd) {
             LocalDate futureDate = LocalDate.now().plusDays(daysToAdd);
             return String.format("%02d.%02d.%d",
                     futureDate.getDayOfMonth(),
@@ -66,5 +68,57 @@ public class TestData {
             this.description = description;
             this.active = active;
         }
+    }
+
+    // Класс для тестовых данных создания новостей (Новое - добавим только то, чего нет)
+    public static class NewsCreation {
+        // Данные для теста длины заголовка
+        public static String getVeryLongTitle() {
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < 50; i++) {
+                sb.append("ОченьДлинныйТекст");
+            }
+            return sb.toString();
+        }
+
+        // Данные для теста спецсимволов
+        public static final String SPECIAL_CHARS_TITLE = "!@#$%^&*";
+
+        // Данные для теста пробелов
+        public static final String SPACES_ONLY_TITLE = "   ";
+
+        // Данные для теста многострочного описания
+        public static final String MULTILINE_DESCRIPTION =
+                "Первая строка описания.\n" +
+                        "Вторая строка с переносом.\n" +
+                        "Третья строка.\n" +
+                        "Еще одна строка для тестирования.";
+
+        // Невалидная категория для теста ручного ввода
+        public static final String INVALID_CATEGORY = "TestInvalidCategory";
+
+        // Данные для теста прошедшей даты
+        public static String getPastDateString() {
+            LocalDate pastDate = LocalDate.now().minusDays(1);
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+            return pastDate.format(formatter);
+        }
+
+        // Данные для теста будущей даты (уже есть в News.getFutureDate, но оставим для ясности)
+        public static String getFutureDateString(int days) {
+            return News.getFutureDate(days);
+        }
+    }
+
+    // Класс для тестовых данных редактирования новостей (Новое)
+    public static class NewsEditing {
+        // Префиксы для тестовых новостей
+        public static final String TEST_PREFIX = "Тест_";
+        public static final String EDIT_PREFIX = "Редактирование_";
+
+        // Данные для изменения при редактировании
+        public static final String EDITED_TITLE_SUFFIX = "_изменено";
+        public static final String EDITED_DESCRIPTION = "Измененное описание новости";
+        public static final String EDITED_CATEGORY = CATEGORY_BIRTHDAY; // Используем существующую константу
     }
 }

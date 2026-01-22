@@ -5,7 +5,7 @@ import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
-import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.CoreMatchers.allOf;
 
 import androidx.test.espresso.ViewInteraction;
 
@@ -28,6 +28,14 @@ public class NewsPage {
 
     private final ViewInteraction sortNewsButton = onView(
             allOf(withId(R.id.sort_news_material_button), isDisplayed())
+    );
+
+    private final ViewInteraction filterNewsButton = onView(
+            allOf(withId(R.id.filter_news_material_button), isDisplayed())
+    );
+
+    private final ViewInteraction newsListRecyclerView = onView(
+            allOf(withId(R.id.news_list_recycler_view), isDisplayed())
     );
 
     // Проверка отображения кнопки "ALL NEWS"
@@ -75,6 +83,52 @@ public class NewsPage {
     // Проверка видимости кнопки "ALL NEWS"
     public NewsPage checkAllNewsButtonIsVisible() {
         WaitUtils.waitForElement(allNewsTitleTextView, 2000);
+        return this;
+    }
+
+    // НОВЫЙ МЕТОД: Переход в раздел News с главного экрана
+    public void navigateToNewsSection() {
+        try {
+            // Пробуем через кнопку "All news" на главном экране
+            clickAllNewsButton();
+            WaitUtils.waitForMillis(1000);
+        } catch (Exception e) {
+            // Если не сработало, пробуем альтернативный путь
+            try {
+                // Ищем и кликаем по любой видимой кнопке All news
+                onView(withId(R.id.all_news_text_view))
+                        .perform(click());
+                WaitUtils.waitForMillis(1000);
+            } catch (Exception e2) {
+                throw new RuntimeException("Failed to navigate to News section: " + e2.getMessage(), e2);
+            }
+        }
+
+        // Проверяем что перешли успешно
+        checkNewsListScreenIsDisplayed();
+    }
+
+    // Дополнительный метод: Проверка отображения списка новостей
+    public boolean isNewsListDisplayed() {
+        return WaitUtils.isElementDisplayedWithId(R.id.news_list_recycler_view, 2000);
+    }
+
+    // Дополнительный метод: Проверка отображения кнопки фильтра
+    public boolean isFilterButtonDisplayed() {
+        return WaitUtils.isElementDisplayedWithId(R.id.filter_news_material_button, 2000);
+    }
+
+    // Дополнительный метод: Клик по кнопке сортировки
+    public NewsPage clickSortButton() {
+        WaitUtils.waitForElement(sortNewsButton, 2000);
+        sortNewsButton.perform(click());
+        return this;
+    }
+
+    // Дополнительный метод: Клик по кнопке фильтра
+    public NewsPage clickFilterButton() {
+        WaitUtils.waitForElement(filterNewsButton, 2000);
+        filterNewsButton.perform(click());
         return this;
     }
 }

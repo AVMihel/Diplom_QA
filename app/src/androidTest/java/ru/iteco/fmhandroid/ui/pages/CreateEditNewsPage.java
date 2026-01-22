@@ -14,6 +14,9 @@ import static org.hamcrest.Matchers.allOf;
 
 import androidx.test.espresso.ViewInteraction;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
 import ru.iteco.fmhandroid.R;
 import ru.iteco.fmhandroid.ui.utils.WaitUtils;
 
@@ -298,5 +301,59 @@ public class CreateEditNewsPage {
             throw new RuntimeException("Failed to fill time manually: " + e.getMessage());
         }
         return this;
+    }
+
+    // НОВЫЕ ПРОСТЫЕ МЕТОДЫ (без сложной логики):
+
+    // Метод для заполнения всех обязательных полей новости
+    public CreateEditNewsPage fillRequiredNewsFields(String title, String category,
+                                                     String description) {
+        fillTitle(title);
+        selectCategorySimple(category);
+        selectCurrentDate();
+        selectCurrentTime();
+        fillDescription(description);
+        return this;
+    }
+
+    // Метод для ввода прошедшей даты
+    public CreateEditNewsPage fillPastDate() {
+        LocalDate pastDate = LocalDate.now().minusDays(1);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+        return fillDateManually(pastDate.format(formatter));
+    }
+
+    // Метод для ввода будущей даты
+    public CreateEditNewsPage fillFutureDate(int daysInFuture) {
+        LocalDate futureDate = LocalDate.now().plusDays(daysInFuture);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+        return fillDateManually(futureDate.format(formatter));
+    }
+
+    // Метод для проверки наличия ошибки валидации
+    public boolean isValidationErrorDisplayed() {
+        return isErrorMessageDisplayed("Saving failed") ||
+                isErrorMessageDisplayed("Try again later");
+    }
+
+    // Метод для проверки, что остались на экране создания/редактирования
+    public boolean isStillOnEditScreen() {
+        return WaitUtils.isElementDisplayedWithId(
+                R.id.news_item_title_text_input_edit_text, 1000);
+    }
+
+    // Метод для заполнения очень длинного заголовка
+    public CreateEditNewsPage fillVeryLongTitle() {
+        StringBuilder longText = new StringBuilder();
+        for (int i = 0; i < 50; i++) { // ~500 символов
+            longText.append("ОченьДлинныйТекст");
+        }
+        fillTitle(longText.toString());
+        return this;
+    }
+
+    // Простой метод для проверки, что поле описания отображается
+    public void checkDescriptionFieldDisplayed() {
+        onView(withId(R.id.news_item_description_text_input_edit_text)).check(matches(isDisplayed()));
     }
 }

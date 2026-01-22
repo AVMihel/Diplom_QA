@@ -3,18 +3,15 @@ package ru.iteco.fmhandroid.ui.pages;
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.action.ViewActions.replaceText;
-import static androidx.test.espresso.action.ViewActions.scrollTo;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.contrib.RecyclerViewActions.actionOnItemAtPosition;
 import static androidx.test.espresso.contrib.RecyclerViewActions.scrollToPosition;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
-import static androidx.test.espresso.matcher.ViewMatchers.withClassName;
 import static androidx.test.espresso.matcher.ViewMatchers.withContentDescription;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withParent;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.is;
 
 import android.view.View;
 import android.view.ViewGroup;
@@ -687,5 +684,60 @@ public class ControlPanelPage {
                         && view.equals(((ViewGroup) parent).getChildAt(position));
             }
         };
+    }
+
+    // Метод для создания новости с заполненными валидными данными
+    public String createValidTestNews() {
+        String title = "Тестовая новость_" + System.currentTimeMillis();
+        return createTestNews(
+                title,
+                "Объявление", // Используем константу из TestData
+                getFutureDateString(1),
+                "12:00",
+                "Тестовое описание автоматически созданной новости"
+        );
+    }
+
+    // Метод для создания новости для тестирования валидации
+    public String createNewsForValidationTest(String category) {
+        String title = "Тест валидации_" + System.currentTimeMillis();
+        return createTestNews(
+                title,
+                category,
+                getFutureDateString(1),
+                "12:00",
+                "Описание для теста валидации"
+        );
+    }
+
+    // Метод для получения даты в будущем в формате dd.MM.yyyy (приватный хелпер)
+    private String getFutureDateString(int daysToAdd) {
+        LocalDate futureDate = LocalDate.now().plusDays(daysToAdd);
+        return String.format("%02d.%02d.%d",
+                futureDate.getDayOfMonth(),
+                futureDate.getMonthValue(),
+                futureDate.getYear());
+    }
+
+    // Методы для NewsCreationTest - добавляем их здесь:
+
+    // Проверка отображения Control Panel с таймаутом
+    public boolean isControlPanelDisplayed(long timeout) {
+        return WaitUtils.isElementDisplayedWithId(R.id.news_list_recycler_view, timeout);
+    }
+
+    // Метод для очистки экрана редактирования
+    public void cleanupEditingScreen() {
+        try {
+            if (WaitUtils.isElementDisplayedWithId(R.id.cancel_button, 1000)) {
+                onView(withId(R.id.cancel_button)).perform(click());
+                WaitUtils.waitForMillis(1000);
+                if (WaitUtils.isElementDisplayedWithText("OK", 1000)) {
+                    onView(withText("OK")).perform(click());
+                }
+            }
+        } catch (Exception e) {
+            // Игнорируем ошибки при очистке
+        }
     }
 }
