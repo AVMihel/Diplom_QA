@@ -1,19 +1,30 @@
 package ru.iteco.fmhandroid.ui.tests;
 
+import static androidx.test.espresso.Espresso.onView;
+import static androidx.test.espresso.action.ViewActions.click;
+import static androidx.test.espresso.assertion.ViewAssertions.matches;
+import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
+import static androidx.test.espresso.matcher.ViewMatchers.withId;
+import static androidx.test.espresso.matcher.ViewMatchers.withText;
+
+import android.graphics.Rect;
+
+import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.uiautomator.By;
+import androidx.test.uiautomator.UiDevice;
+import androidx.test.uiautomator.UiObject2;
+
 import org.junit.Test;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import ru.iteco.fmhandroid.R;
 import ru.iteco.fmhandroid.ui.core.BaseTest;
 import ru.iteco.fmhandroid.ui.pages.ControlPanelPage;
 import ru.iteco.fmhandroid.ui.pages.CreateEditNewsPage;
 import ru.iteco.fmhandroid.ui.pages.NewsFilterPage;
-
-import static androidx.test.espresso.Espresso.onView;
-import static androidx.test.espresso.assertion.ViewAssertions.matches;
-import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
-import static androidx.test.espresso.matcher.ViewMatchers.withId;
+import ru.iteco.fmhandroid.ui.utils.WaitUtils;
 
 public class ControlPanelNewsTest extends BaseTest {
 
@@ -22,13 +33,8 @@ public class ControlPanelNewsTest extends BaseTest {
     // TC-NEWS-CP-01: Переход в "Control Panel"
     @Test
     public void testNavigateToControlPanel() {
-        // 1. Гарантируем, что мы на главном экране
         ensureOnMainScreen();
-
-        // 2. Переходим в Control Panel
         controlPanelPage.navigateToControlPanel();
-
-        // 3. Проверяем элементы Control Panel
         onView(withId(R.id.add_news_image_view)).check(matches(isDisplayed()));
         onView(withId(R.id.sort_news_material_button)).check(matches(isDisplayed()));
     }
@@ -36,121 +42,68 @@ public class ControlPanelNewsTest extends BaseTest {
     // TC-NEWS-CP-02: Отображение элементов у новостей в "Control Panel"
     @Test
     public void testDisplayNewsElementsInControlPanel() {
-        // 1. Гарантируем, что мы на главном экране
         ensureOnMainScreen();
-
-        // 2. Переходим в Control Panel
         controlPanelPage.navigateToControlPanel();
-
-        // 3. Проверяем элементы новостей
         controlPanelPage.checkNewsElementsExist();
     }
 
     // TC-NEWS-CP-03: Раскрытие/скрытие описания новости
     @Test
     public void testExpandCollapseNewsDescription() {
-        // 1. Гарантируем, что мы на главном экране
         ensureOnMainScreen();
-
-        // 2. Переходим в Control Panel
         controlPanelPage.navigateToControlPanel();
-
-        // 3. Проверяем раскрытие/скрытие описания
         controlPanelPage.expandAndCollapseNewsDescription();
     }
 
     // TC-NEWS-CP-04: Переход к редактированию новости
     @Test
     public void testNavigateToEditNews() {
-        // 1. Гарантируем, что мы на главном экране
         ensureOnMainScreen();
-
-        // 2. Переходим в Control Panel
         controlPanelPage.navigateToControlPanel();
-
-        // 3. Переходим к редактированию новости
         CreateEditNewsPage editPage = controlPanelPage.navigateToEditNews();
         editPage.checkEditScreenIsDisplayed();
-
-        // 4. Отменяем редактирование
         editPage.cancelWithConfirmation();
-
-        // 5. Проверяем возврат в Control Panel
         controlPanelPage.checkControlPanelIsDisplayed();
     }
 
     // TC-NEWS-CP-06: Проверка корректности отображения "Publication date"
     @Test
     public void testPublicationDateDisplay() {
-        // 1. Гарантируем, что мы на главном экране
         ensureOnMainScreen();
-
-        // 2. Переходим в Control Panel
         controlPanelPage.navigateToControlPanel();
-
-        String testNewsTitle = null;
+        String testNewsTitle = controlPanelPage.createNewsForDateTest();
         try {
-            // 3. Создаем новость с текущим годом
-            int currentYear = LocalDate.now().getYear();
-            testNewsTitle = controlPanelPage.createNewsForDateTest(currentYear);
-
-            // 4. Проверяем год в дате публикации
-            controlPanelPage.verifyPublicationDateYear(testNewsTitle, currentYear);
-
+            controlPanelPage.verifyPublicationDateDisplay(testNewsTitle);
         } finally {
-            // 5. Очистка
-            if (testNewsTitle != null) {
-                try {
-                    controlPanelPage.deleteCreatedNewsByExactTitle(testNewsTitle);
-                } catch (Exception e) {
-                }
-            }
+            controlPanelPage.deleteCreatedNewsByExactTitle(testNewsTitle);
         }
     }
 
     // TC-NEWS-CP-07: Проверка корректности отображения "Creation date"
     @Test
-    public void testCreationDateYear() {
-        // 1. Гарантируем, что мы на главном экране
+    public void testCreationDateDisplay() {
         ensureOnMainScreen();
-
-        // 2. Переходим в Control Panel
         controlPanelPage.navigateToControlPanel();
 
-        String testNewsTitle = null;
+        int currentYear = LocalDate.now().getYear();
+        String testNewsTitle = controlPanelPage.createNewsForDateTest(currentYear);
+
         try {
-            // 3. Создаем новость с текущим годом
-            int currentYear = LocalDate.now().getYear();
-            testNewsTitle = controlPanelPage.createNewsForDateTest(currentYear);
-
-            // 4. Проверяем год в дате создания
             controlPanelPage.verifyCreationDateYear(testNewsTitle, currentYear);
-
+        } catch (AssertionError e) {
+            throw new AssertionError("БАГ: Creation date отображается некорректно. " + e.getMessage());
         } finally {
-            // 5. Очистка
-            if (testNewsTitle != null) {
-                try {
-                    controlPanelPage.deleteCreatedNewsByExactTitle(testNewsTitle);
-                } catch (Exception e) {
-                }
-            }
+            controlPanelPage.deleteCreatedNewsByExactTitle(testNewsTitle);
         }
     }
 
     // TC-NEWS-CP-08: Сортировка новостей по дате публикации
     @Test
     public void testSortNewsByPublicationDate() {
-        // 1. Гарантируем, что мы на главном экране
         ensureOnMainScreen();
-
-        // 2. Переходим в Control Panel
         controlPanelPage.navigateToControlPanel();
-
-        // 3. Сортируем новости
         controlPanelPage.clickSortButton();
         controlPanelPage.checkNewsAreSorted();
-
-        // 4. Сортируем еще раз (обратный порядок)
         controlPanelPage.clickSortButton();
         controlPanelPage.checkNewsAreSorted();
     }
@@ -158,50 +111,110 @@ public class ControlPanelNewsTest extends BaseTest {
     // TC-NEWS-CP-09: Фильтрация с неактивным чекбоксом статуса
     @Test
     public void testFilterWithNoStatusChecked() {
-        // 1. Гарантируем, что мы на главном экране
         ensureOnMainScreen();
-
-        // 2. Переходим в Control Panel
         controlPanelPage.navigateToControlPanel();
 
-        // 3. Открываем фильтр
         NewsFilterPage filterPage = controlPanelPage.openFilterDialog();
-
-        // 4. Снимаем оба чекбокса статуса
-        filterPage.uncheckBothStatuses();
-
-        // 5. Применяем фильтр
+        onView(withId(R.id.filter_news_active_material_check_box)).perform(click());
+        onView(withId(R.id.filter_news_inactive_material_check_box)).perform(click());
         filterPage.applyFilter();
 
-        // 6. Проверяем результат
-        controlPanelPage.checkControlPanelIsDisplayed();
+        WaitUtils.waitForMillis(1000);
+
+        try {
+            onView(withText("There is nothing here yet..."))
+                    .check(matches(isDisplayed()));
+        } catch (Exception e) {
+            try {
+                onView(withId(R.id.news_list_recycler_view))
+                        .check(matches(isDisplayed()));
+                throw new AssertionError("БАГ: Новости найдены при снятых чекбоксах!");
+            } catch (Exception ex) {
+            }
+        }
     }
 
     // TC-NEWS-CP-10: Фильтрация только активных новостей
     @Test
     public void testFilterOnlyActiveNews() {
-        // 1. Гарантируем, что мы на главном экране
         ensureOnMainScreen();
-
-        // 2. Переходим в Control Panel
         controlPanelPage.navigateToControlPanel();
 
-        // 3. Проверяем кнопку фильтра
-        onView(withId(R.id.filter_news_material_button)).check(matches(isDisplayed()));
-        controlPanelPage.checkControlPanelIsDisplayed();
+        NewsFilterPage filterPage = controlPanelPage.openFilterDialog();
+        onView(withId(R.id.filter_news_inactive_material_check_box)).perform(click());
+        filterPage.applyFilter();
+
+        WaitUtils.waitForMillis(1500);
+
+        UiDevice device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
+        List<UiObject2> newsCards = device.findObjects(
+                By.res("ru.iteco.fmhandroid:id/news_item_material_card_view"));
+
+        if (newsCards.isEmpty()) {
+            return;
+        }
+
+        boolean foundNotActive = false;
+        for (UiObject2 card : newsCards) {
+            try {
+                if (card.isEnabled()) {
+                    Rect bounds = card.getVisibleBounds();
+                    if (bounds.width() > 10 && bounds.height() > 10) {
+                        UiObject2 notActiveText = card.findObject(By.text("NOT ACTIVE"));
+                        if (notActiveText != null && notActiveText.isEnabled()) {
+                            foundNotActive = true;
+                            break;
+                        }
+                    }
+                }
+            } catch (Exception e) {
+            }
+        }
+
+        if (foundNotActive) {
+            throw new AssertionError("БАГ: Найдены неактивные новости при фильтре только активных!");
+        }
     }
 
     // TC-NEWS-CP-11: Фильтрация только неактивных новостей
     @Test
     public void testFilterOnlyInactiveNews() {
-        // 1. Гарантируем, что мы на главном экране
         ensureOnMainScreen();
-
-        // 2. Переходим в Control Panel
         controlPanelPage.navigateToControlPanel();
 
-        // 3. Проверяем кнопку фильтра
-        onView(withId(R.id.filter_news_material_button)).check(matches(isDisplayed()));
-        controlPanelPage.checkControlPanelIsDisplayed();
+        NewsFilterPage filterPage = controlPanelPage.openFilterDialog();
+        onView(withId(R.id.filter_news_active_material_check_box)).perform(click());
+        filterPage.applyFilter();
+
+        WaitUtils.waitForMillis(1500);
+
+        UiDevice device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
+        List<UiObject2> newsCards = device.findObjects(
+                By.res("ru.iteco.fmhandroid:id/news_item_material_card_view"));
+
+        if (newsCards.isEmpty()) {
+            return;
+        }
+
+        boolean foundActive = false;
+        for (UiObject2 card : newsCards) {
+            try {
+                if (card.isEnabled()) {
+                    Rect bounds = card.getVisibleBounds();
+                    if (bounds.width() > 10 && bounds.height() > 10) {
+                        UiObject2 activeText = card.findObject(By.text("ACTIVE"));
+                        if (activeText != null && activeText.isEnabled()) {
+                            foundActive = true;
+                            break;
+                        }
+                    }
+                }
+            } catch (Exception e) {
+            }
+        }
+
+        if (foundActive) {
+            throw new AssertionError("БАГ: Найдены активные новости при фильтре только неактивных!");
+        }
     }
 }

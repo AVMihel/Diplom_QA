@@ -1,7 +1,5 @@
 package ru.iteco.fmhandroid.ui.core;
 
-import static ru.iteco.fmhandroid.ui.core.TestData.News.CATEGORY_BIRTHDAY;
-
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
@@ -17,7 +15,7 @@ public class TestData {
     public static final String LOGIN_WITH_SPACES = "log in2";
     public static final String LOGIN_ONLY_SPACES = "   ";
 
-    // Вложенный класс для данных тестирования новостей
+    // Класс для данных тестирования новостей
     public static class News {
         // Константы категорий новостей
         public static final String CATEGORY_ANNOUNCEMENT = "Объявление";
@@ -29,12 +27,68 @@ public class TestData {
         public static final String CATEGORY_THANKS = "Благодарность";
         public static final String CATEGORY_HELP_NEEDED = "Нужна помощь";
 
-        // Объект новости для end-to-end теста создания
+        // Общие константы времени
+        public static final String DEFAULT_TIME = "12:00";
+        public static final String E2E_TIME = "10:00";
+
+        // Тестовые данные для редактирования новостей
+        public static class Editing {
+            public static final String UPDATED_TITLE_PREFIX = "Обновленный заголовок_";
+            public static final String ORIGINAL_DESCRIPTION = "Оригинальное описание для тестов редактирования";
+            public static final String UPDATED_DESCRIPTION_PREFIX = "Обновленное описание с изменениями ";
+            public static final String TITLE_PREFIX_FOR_CANCEL = "Измененный заголовок который не должен сохраниться_";
+            public static final String EDITING_ORIGINAL_DESCRIPTION = "Оригинальное описание новости";
+        }
+
+        // Тестовые данные для E2E тестов
+        public static class E2E {
+            public static final String ORIGINAL_TITLE_PREFIX = "Оригинальная новость_";
+            public static final String UPDATED_TITLE_PREFIX = "Обновленная новость_";
+            public static final String TEST_TITLE_PREFIX = "TestNews_";
+            public static final String TEST_DELETION_DESCRIPTION = "Automated test news for deletion";
+            public static final String DATE_TEST_TITLE_PREFIX = "ТестДаты_";
+            public static final String DATE_TEST_DESCRIPTION_PREFIX = "Новость для теста дат: ";
+
+            // Даты
+            public static final String DEFAULT_DATE = "01.01.2025";
+        }
+
+        // Тестовые данные для валидации
+        public static class Validation {
+
+            // Тесты длины заголовка
+            public static final String LENGTH_TEST_TITLE_PREFIX = "Тест прошедшей даты_";
+            public static final String LENGTH_TEST_DESCRIPTION = "Описание для теста прошедшей даты";
+
+            // Тесты категорий
+            public static final String MANUAL_CATEGORY_TEST_TITLE_PREFIX = "Тест ручного ввода категории_";
+            public static final String MANUAL_CATEGORY_TEST_DESCRIPTION = "Описание для теста ручного ввода категории";
+
+            // Тесты спецсимволов
+            public static final String SPECIAL_CHARS_TEST_DESCRIPTION = "Описание для теста спецсимволов";
+
+            // Тесты пробелов
+            public static final String SPACES_TEST_DESCRIPTION = "Описание для теста пробелов";
+
+            // Тесты многострочного описания
+            public static final String MULTILINE_TEST_TITLE_PREFIX = "Тест многострочного описания_";
+
+            // Тесты отмены
+            public static final String CANCEL_TEST_TITLE_PREFIX = "Тест отмены создания_";
+        }
+
+        // Общие тестовые данные
+        public static class Common {
+            public static final String DATE_TEST_TITLE = "Тест даты_";
+            public static final String DATE_TEST_DESCRIPTION = "Описание для теста дат";
+        }
+
+        // Объект новости для E2E теста создания
         public static final NewsItem E2E_NEWS = new NewsItem(
                 "Автотест: Важное объявление",
                 CATEGORY_ANNOUNCEMENT,
                 getFutureDate(1),
-                "10:00",
+                E2E_TIME,
                 "Это автоматически созданная новость для тестирования функционала.",
                 true
         );
@@ -47,9 +101,14 @@ public class TestData {
                     futureDate.getMonthValue(),
                     futureDate.getYear());
         }
+
+        // Получение времени (для обратной совместимости)
+        public static String getTime() {
+            return DEFAULT_TIME;
+        }
     }
 
-    // Класс, представляющий объект новости
+    // Объект новости
     public static class NewsItem {
         public final String title;
         public final String category;
@@ -70,7 +129,7 @@ public class TestData {
         }
     }
 
-    // Класс для тестовых данных создания новостей (Новое - добавим только то, чего нет)
+    // Класс для тестовых данных создания новостей
     public static class NewsCreation {
         // Данные для теста длины заголовка
         public static String getVeryLongTitle() {
@@ -103,22 +162,5 @@ public class TestData {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
             return pastDate.format(formatter);
         }
-
-        // Данные для теста будущей даты (уже есть в News.getFutureDate, но оставим для ясности)
-        public static String getFutureDateString(int days) {
-            return News.getFutureDate(days);
-        }
-    }
-
-    // Класс для тестовых данных редактирования новостей (Новое)
-    public static class NewsEditing {
-        // Префиксы для тестовых новостей
-        public static final String TEST_PREFIX = "Тест_";
-        public static final String EDIT_PREFIX = "Редактирование_";
-
-        // Данные для изменения при редактировании
-        public static final String EDITED_TITLE_SUFFIX = "_изменено";
-        public static final String EDITED_DESCRIPTION = "Измененное описание новости";
-        public static final String EDITED_CATEGORY = CATEGORY_BIRTHDAY; // Используем существующую константу
     }
 }

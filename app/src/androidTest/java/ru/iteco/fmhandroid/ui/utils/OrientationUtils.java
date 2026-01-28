@@ -1,13 +1,17 @@
 package ru.iteco.fmhandroid.ui.utils;
 
+import static ru.iteco.fmhandroid.ui.utils.WaitUtils.waitForMillis;
+
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.uiautomator.UiDevice;
 
 public class OrientationUtils {
 
+    private static final int DEFAULT_ORIENTATION_DELAY = 2000;
+
     private static UiDevice uiDevice;
 
-    private static UiDevice getDevice() {
+    private static synchronized UiDevice getDevice() {
         if (uiDevice == null) {
             uiDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
         }
@@ -16,9 +20,14 @@ public class OrientationUtils {
 
     // Поворот в ландшафтную ориентацию
     public static void rotateToLandscape() {
+        rotateToLandscape(DEFAULT_ORIENTATION_DELAY);
+    }
+
+    // Поворот в ландшафтную ориентацию с кастомной задержкой
+    public static void rotateToLandscape(long delayMillis) {
         try {
             getDevice().setOrientationLeft();
-            WaitUtils.waitForMillis(2000);
+            waitForMillis(delayMillis);
         } catch (Exception e) {
             throw new RuntimeException("Failed to rotate to landscape: " + e.getMessage(), e);
         }
@@ -26,16 +35,16 @@ public class OrientationUtils {
 
     // Поворот в портретную ориентацию
     public static void rotateToPortrait() {
+        rotateToPortrait(DEFAULT_ORIENTATION_DELAY);
+    }
+
+    // Поворот в портретную ориентацию с кастомной задержкой
+    public static void rotateToPortrait(long delayMillis) {
         try {
             getDevice().setOrientationNatural();
-            WaitUtils.waitForMillis(2000);
+            waitForMillis(delayMillis);
         } catch (Exception e) {
             throw new RuntimeException("Failed to rotate to portrait: " + e.getMessage(), e);
         }
-    }
-
-    // Сброс ориентации в дефолтную (для очистки)
-    public static void resetOrientation() {
-        rotateToPortrait();
     }
 }

@@ -14,67 +14,55 @@ import ru.iteco.fmhandroid.ui.utils.WaitUtils;
 
 public class NewsPage {
 
-    private final ViewInteraction allNewsTextView = onView(
-            allOf(withId(R.id.all_news_text_view), withText("All news"), isDisplayed())
-    );
+    private static final int MEDIUM_DELAY = 500;
+    private static final int LONG_DELAY = 1500;
 
-    private final ViewInteraction allNewsTitleTextView = onView(
-            allOf(withId(R.id.all_news_text_view), withText("ALL NEWS"), isDisplayed())
-    );
+    // Текстовые константы
+    private static final String ALL_NEWS_TEXT = "ALL NEWS";
+    private static final String ERROR_NAVIGATE_TO_NEWS = "Failed to navigate to 'News' section";
 
-    private final ViewInteraction expandNewsButton = onView(
-            allOf(withId(R.id.expand_material_button), isDisplayed())
-    );
-
-    private final ViewInteraction sortNewsButton = onView(
-            allOf(withId(R.id.sort_news_material_button), isDisplayed())
-    );
-
-    private final ViewInteraction filterNewsButton = onView(
-            allOf(withId(R.id.filter_news_material_button), isDisplayed())
-    );
-
-    private final ViewInteraction newsListRecyclerView = onView(
-            allOf(withId(R.id.news_list_recycler_view), isDisplayed())
-    );
+    // ID элементов
+    private static final int ALL_NEWS_TEXT_VIEW_ID = R.id.all_news_text_view;
+    private static final int EXPAND_BUTTON_ID = R.id.expand_material_button;
+    private static final int SORT_BUTTON_ID = R.id.sort_news_material_button;
 
     // Проверка отображения кнопки "ALL NEWS"
     public NewsPage checkAllNewsButtonIsDisplayed() {
-        WaitUtils.waitForElement(allNewsTitleTextView, 3000);
+        WaitUtils.waitForElement(getAllNewsTextView(), LONG_DELAY);
         return this;
     }
 
-    // Клик по кнопке "All news" (на главном экране)
+    // Клик по кнопке "ALL NEWS"
     public NewsPage clickAllNewsButton() {
-        WaitUtils.waitForElement(allNewsTextView, 2000);
-        allNewsTextView.perform(click());
+        WaitUtils.waitForElement(getAllNewsTextView(), LONG_DELAY);
+        getAllNewsTextView().perform(click());
         return this;
     }
 
     // Проверка отображения экрана со списком новостей
     public NewsPage checkNewsListScreenIsDisplayed() {
-        WaitUtils.waitForElement(sortNewsButton, 3000);
+        WaitUtils.waitForElement(getSortNewsButton(), LONG_DELAY);
         return this;
     }
 
     // Проверка отображения кнопки разворачивания блока новостей
     public NewsPage checkExpandNewsButtonIsDisplayed() {
-        WaitUtils.waitForElement(expandNewsButton, 2000);
+        WaitUtils.waitForElement(getExpandNewsButton(), LONG_DELAY);
         return this;
     }
 
     // Клик по кнопке разворачивания блока новостей
     public NewsPage clickExpandNewsButton() {
-        WaitUtils.waitForElement(expandNewsButton, 2000);
-        expandNewsButton.perform(click());
+        WaitUtils.waitForElement(getExpandNewsButton(), LONG_DELAY);
+        getExpandNewsButton().perform(click());
         return this;
     }
 
     // Проверка скрытия кнопки "ALL NEWS" (после разворачивания блока)
     public NewsPage checkAllNewsButtonIsHidden() {
         try {
-            WaitUtils.waitForElement(allNewsTitleTextView, 1000);
-            throw new AssertionError("The 'ALL NEWS' button should be hidden after the block is expanded.");
+            WaitUtils.waitForElement(getAllNewsTextView(), MEDIUM_DELAY);
+            throw new AssertionError("'ALL NEWS' button should be hidden after expanding the block");
         } catch (Exception e) {
             return this;
         }
@@ -82,53 +70,45 @@ public class NewsPage {
 
     // Проверка видимости кнопки "ALL NEWS"
     public NewsPage checkAllNewsButtonIsVisible() {
-        WaitUtils.waitForElement(allNewsTitleTextView, 2000);
+        WaitUtils.waitForElement(getAllNewsTextView(), LONG_DELAY);
         return this;
     }
 
-    // НОВЫЙ МЕТОД: Переход в раздел News с главного экрана
+    // Переход в раздел News с главного экрана
     public void navigateToNewsSection() {
         try {
-            // Пробуем через кнопку "All news" на главном экране
             clickAllNewsButton();
-            WaitUtils.waitForMillis(1000);
+            WaitUtils.waitForMillis(MEDIUM_DELAY);
         } catch (Exception e) {
-            // Если не сработало, пробуем альтернативный путь
             try {
-                // Ищем и кликаем по любой видимой кнопке All news
-                onView(withId(R.id.all_news_text_view))
+                onView(withId(ALL_NEWS_TEXT_VIEW_ID))
                         .perform(click());
-                WaitUtils.waitForMillis(1000);
+                WaitUtils.waitForMillis(MEDIUM_DELAY);
             } catch (Exception e2) {
-                throw new RuntimeException("Failed to navigate to News section: " + e2.getMessage(), e2);
+                throw new RuntimeException(ERROR_NAVIGATE_TO_NEWS + e2.getMessage(), e2);
             }
         }
 
-        // Проверяем что перешли успешно
         checkNewsListScreenIsDisplayed();
     }
 
-    // Дополнительный метод: Проверка отображения списка новостей
-    public boolean isNewsListDisplayed() {
-        return WaitUtils.isElementDisplayedWithId(R.id.news_list_recycler_view, 2000);
+    // Вспомогательные методы для получения элементов интерфейса
+
+    private ViewInteraction getAllNewsTextView() {
+        return onView(
+                allOf(withId(ALL_NEWS_TEXT_VIEW_ID), withText(ALL_NEWS_TEXT), isDisplayed())
+        );
     }
 
-    // Дополнительный метод: Проверка отображения кнопки фильтра
-    public boolean isFilterButtonDisplayed() {
-        return WaitUtils.isElementDisplayedWithId(R.id.filter_news_material_button, 2000);
+    private ViewInteraction getExpandNewsButton() {
+        return onView(
+                allOf(withId(EXPAND_BUTTON_ID), isDisplayed())
+        );
     }
 
-    // Дополнительный метод: Клик по кнопке сортировки
-    public NewsPage clickSortButton() {
-        WaitUtils.waitForElement(sortNewsButton, 2000);
-        sortNewsButton.perform(click());
-        return this;
-    }
-
-    // Дополнительный метод: Клик по кнопке фильтра
-    public NewsPage clickFilterButton() {
-        WaitUtils.waitForElement(filterNewsButton, 2000);
-        filterNewsButton.perform(click());
-        return this;
+    private ViewInteraction getSortNewsButton() {
+        return onView(
+                allOf(withId(SORT_BUTTON_ID), isDisplayed())
+        );
     }
 }

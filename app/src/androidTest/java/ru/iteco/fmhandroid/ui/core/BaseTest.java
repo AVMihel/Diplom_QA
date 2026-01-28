@@ -10,66 +10,128 @@ import org.junit.Rule;
 import ru.iteco.fmhandroid.ui.AppActivity;
 import ru.iteco.fmhandroid.ui.pages.AuthorizationPage;
 import ru.iteco.fmhandroid.ui.pages.MainPage;
+import ru.iteco.fmhandroid.ui.utils.WaitUtils;
 
 @LargeTest
 public abstract class BaseTest {
 
-    // Правило для запуска тестовой активности
+    private static final int SHORT_DELAY = 200;
+    private static final int MEDIUM_DELAY = 500;
+    private static final int LONG_DELAY = 1500;
+    private static final int EXTRA_LONG_DELAY = 3000;
+    private static final int POLLING_DELAY = 200;
+
     @Rule
     public ActivityScenarioRule<AppActivity> activityRule =
             new ActivityScenarioRule<>(AppActivity.class);
 
-    // Объекты страниц для использования в тестах
     protected AuthorizationPage authPage = new AuthorizationPage();
     protected MainPage mainPage = new MainPage();
 
-    // Метод настройки перед каждым тестом
     @Before
     public void setUp() {
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        WaitUtils.waitForMillis(MEDIUM_DELAY);
+
+        ScreenState currentState = detectCurrentScreen();
+
+        switch (currentState) {
+            case AUTH_SCREEN:
+                break;
+
+            case MAIN_SCREEN:
+                performSafeLogout();
+                waitForAuthScreen(EXTRA_LONG_DELAY);
+                break;
+
+            case UNKNOWN_SCREEN:
+                WaitUtils.waitForMillis(LONG_DELAY);
+                if (!authPage.isAuthScreenDisplayedQuick(LONG_DELAY)) {
+                    // Не удалось определить состояние экрана
+                }
+                break;
         }
 
-        // Проверка отображения экрана авторизации
-        if (authPage.isAuthScreenDisplayedQuick(2000)) {
-            return;
-        }
-
-        // Если на главном экране, выполняем выход
-        if (mainPage.isMainScreenDisplayedQuick(2000)) {
-            mainPage.tryToLogout();
-        }
-
-        // Ожидание экрана авторизации
-        authPage.checkAuthorizationScreenIsDisplayed();
+        ensureOnAuthScreen();
     }
 
-    // Метод очистки после каждого теста
     @After
     public void tearDown() {
         try {
-            // Попытка выхода, если на главном экране
-            if (mainPage.isMainScreenDisplayedQuick(1500)) {
+            if (mainPage.isMainScreenDisplayedQuick(LONG_DELAY)) {
                 mainPage.tryToLogout();
+                WaitUtils.waitForMillis(MEDIUM_DELAY);
             }
+
         } catch (Exception e) {
-            // Игнорируем ошибки при очистке
+            // Игнорируем ошибки очистки, чтобы не влиять на результаты тестов
         }
     }
 
-    // Вход в приложение и переход на главный экран
+    private enum ScreenState {
+        AUTH_SCREEN, MAIN_SCREEN, UNKNOWN_SCREEN
+    }
+
+    // Определение текущего экрана приложения
+    private ScreenState detectCurrentScreen() {
+        if (authPage.isAuthScreenDisplayedQuick(MEDIUM_DELAY)) {
+            return ScreenState.AUTH_SCREEN;
+        }
+
+        if (mainPage.isMainScreenDisplayedQuick(MEDIUM_DELAY)) {
+            return ScreenState.MAIN_SCREEN;
+        }
+
+        return ScreenState.UNKNOWN_SCREEN;
+    }
+
+    // Безопасный выход из системы
+    private void performSafeLogout() {
+        try {
+            mainPage.tryToLogout();
+            WaitUtils.waitForMillis(MEDIUM_DELAY);
+        } catch (Exception e) {
+            // Игнорируем ошибки безопасного выхода
+        }
+    }
+
+    // Ожидание появления экрана авторизации
+    private void waitForAuthScreen(int timeoutMillis) {
+        long endTime = System.currentTimeMillis() + timeoutMillis;
+        while (System.currentTimeMillis() < endTime) {
+            if (authPage.isAuthScreenDisplayedQuick(SHORT_DELAY)) {
+                return;
+            }
+            WaitUtils.waitForMillis(POLLING_DELAY);
+        }
+    }
+
+    // Проверка что мы на экране авторизации
+    private void ensureOnAuthScreen() {
+        if (!authPage.isAuthScreenDisplayedQuick(EXTRA_LONG_DELAY)) {
+            // Не удалось перейти на экран авторизации
+        }
+    }
+
+    // Авторизация и переход на главный экран
     protected void loginAndGoToMainScreen() {
         authPage.checkAuthorizationScreenIsDisplayed();
         authPage.login(TestData.VALID_LOGIN, TestData.VALID_PASSWORD);
         mainPage.checkMainScreenIsDisplayed();
     }
 
-    // Гарантированное нахождение на главном экране
+    // Проверка что мы на главном экране
     protected void ensureOnMainScreen() {
-        if (!mainPage.isMainScreenDisplayedQuick(2000)) {
-            loginAndGoToMainScreen();
+        if (!mainPage.isMainScreenDisplayedQuick(LONG_DELAY)) {
+            if (authPage.isAuthScreenDisplayedQuick(LONG_DELAY)) {
+                loginAndGoToMainScreen();
+            } else {
+                WaitUtils.waitForMillis(LONG_DELAY);
+                if (authPage.isAuthScreenDisplayedQuick(LONG_DELAY)) {
+                    loginAndGoToMainScreen();
+                } else {
+                    throw new IllegalStateException("Не удалось определить состояние приложения");
+                }
+            }
         }
     }
 }
