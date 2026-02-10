@@ -8,9 +8,7 @@ import androidx.test.uiautomator.UiDevice;
 public class OrientationUtils {
 
     private static final int DEFAULT_ORIENTATION_DELAY = 2000;
-
     private static UiDevice uiDevice;
-
     private static synchronized UiDevice getDevice() {
         if (uiDevice == null) {
             uiDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
@@ -23,7 +21,7 @@ public class OrientationUtils {
         rotateToLandscape(DEFAULT_ORIENTATION_DELAY);
     }
 
-    // Поворот в ландшафтную ориентацию с кастомной задержкой
+    // Поворот в ландшафтную ориентацию с задержкой
     public static void rotateToLandscape(long delayMillis) {
         try {
             getDevice().setOrientationLeft();
@@ -38,7 +36,7 @@ public class OrientationUtils {
         rotateToPortrait(DEFAULT_ORIENTATION_DELAY);
     }
 
-    // Поворот в портретную ориентацию с кастомной задержкой
+    // Поворот в портретную ориентацию с задержкой
     public static void rotateToPortrait(long delayMillis) {
         try {
             getDevice().setOrientationNatural();

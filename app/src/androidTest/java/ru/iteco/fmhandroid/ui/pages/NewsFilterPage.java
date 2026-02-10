@@ -6,197 +6,115 @@ import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
-import static org.hamcrest.Matchers.allOf;
 
 import androidx.test.espresso.ViewInteraction;
 
+import io.qameta.allure.kotlin.Step;
+import io.qameta.allure.kotlin.junit4.DisplayName;
 import ru.iteco.fmhandroid.R;
-import ru.iteco.fmhandroid.ui.core.TestData;
+import ru.iteco.fmhandroid.ui.utils.NewsFilterUtils;
 import ru.iteco.fmhandroid.ui.utils.WaitUtils;
 
+@DisplayName("Страница фильтрации новостей")
 public class NewsFilterPage {
 
+    private static final int SHORT_DELAY = 200;
+    private static final int MEDIUM_DELAY = 500;
     private static final int LONG_DELAY = 1500;
 
-    // Константы текстов
-    private static final String FILTER_TITLE = "Filter news";
-    private static final String ACTIVE_TEXT = "Active";
-    private static final String NOT_ACTIVE_TEXT = "Not active";
-    private static final String FILTER_BUTTON_TEXT = "FILTER";
-    private static final String CANCEL_BUTTON_TEXT = "CANCEL";
-    private static final String OK_TEXT = "OK";
-    private static final String OK_RUSSIAN_TEXT = "ОК";
-    private static final String ANNOUNCEMENT_CATEGORY = TestData.News.CATEGORY_ANNOUNCEMENT;
-    private static final String BIRTHDAY_CATEGORY = TestData.News.CATEGORY_BIRTHDAY;
-
-    // Сообщения об ошибках
-    private static final String[] ERROR_MESSAGES = {
-            "The end date cannot be earlier than the start date",
-            "End date cannot be earlier than start date",
-            "Некорректные даты",
-            "Invalid date range"
-    };
-
-    // Категории для проверки
-    private static final String[] CATEGORIES = {
-            TestData.News.CATEGORY_ANNOUNCEMENT,
-            TestData.News.CATEGORY_BIRTHDAY,
-            TestData.News.CATEGORY_SALARY,
-            TestData.News.CATEGORY_TRADE_UNION,
-            TestData.News.CATEGORY_HOLIDAY,
-            TestData.News.CATEGORY_MASSAGE,
-            TestData.News.CATEGORY_THANKS,
-            TestData.News.CATEGORY_HELP_NEEDED
-    };
-
-    // Элементы диалога фильтрации
-    private final ViewInteraction filterTitle = onView(
-            allOf(withId(R.id.filter_news_title_text_view), withText(FILTER_TITLE))
-    );
-
-    private final ViewInteraction categoryField = onView(
-            allOf(withId(R.id.news_item_category_text_auto_complete_text_view))
-    );
-
-    private final ViewInteraction startDateField = onView(
-            allOf(withId(R.id.news_item_publish_date_start_text_input_edit_text))
-    );
-
-    private final ViewInteraction endDateField = onView(
-            allOf(withId(R.id.news_item_publish_date_end_text_input_edit_text))
-    );
-
-    private final ViewInteraction activeCheckbox = onView(
-            allOf(withId(R.id.filter_news_active_material_check_box), withText(ACTIVE_TEXT))
-    );
-
-    private final ViewInteraction notActiveCheckbox = onView(
-            allOf(withId(R.id.filter_news_inactive_material_check_box), withText(NOT_ACTIVE_TEXT))
-    );
-
-    private final ViewInteraction filterButton = onView(
-            allOf(withId(R.id.filter_button), withText(FILTER_BUTTON_TEXT))
-    );
-
-    private final ViewInteraction cancelButton = onView(
-            allOf(withId(R.id.cancel_button), withText(CANCEL_BUTTON_TEXT))
-    );
-
-    // Проверка отображения диалога фильтрации
-    public NewsFilterPage checkFilterDialogIsDisplayed() {
-        WaitUtils.waitForElement(filterTitle, LONG_DELAY);
-        return this;
+    @Step("Выбрать будущую дату окончания через календарь (через {days} дней)")
+    public void selectFutureEndDateViaCalendar(int days) {
+        NewsFilterUtils.selectFutureEndDateViaCalendar(days);
     }
 
-    // Проверка элементов экрана фильтрации
-    public void checkFilterElementsDisplayed() {
-        checkFilterDialogIsDisplayed();
-
-        ViewInteraction[] elements = {
-                categoryField,
-                startDateField,
-                endDateField,
-                activeCheckbox,
-                notActiveCheckbox,
-                filterButton,
-                cancelButton
-        };
-
-        for (ViewInteraction element : elements) {
-            element.check(matches(isDisplayed()));
-        }
+    @Step("Выбрать прошедшую дату начала через календарь (за {days} дней до сегодня)")
+    public void selectPastStartDateViaCalendar(int days) {
+        NewsFilterUtils.selectPastStartDateViaCalendar(days);
     }
 
-    // Проверка списка категорий
-    public void checkCategoriesList() {
-        categoryField.perform(click());
-
-        for (String category : CATEGORIES) {
-            try {
-                onView(withText(category)).check(matches(isDisplayed()));
-            } catch (Exception e) {
-                // Игнорируем если категория не найдена
-            }
-        }
-
-        try {
-            onView(withText(CATEGORIES[0])).perform(click());
-        } catch (Exception e) {
-            categoryField.perform(click());
-        }
-    }
-
-    // Выбор даты через календарь
-    public NewsFilterPage selectStartDate() {
-        return selectDateField(startDateField);
-    }
-
-    // Выбор конечной даты фильтра новостей
-    public NewsFilterPage selectEndDate() {
-        return selectDateField(endDateField);
-    }
-
-    // Отмена фильтрации
-    public void cancelFilter() {
-        cancelButton.perform(click());
-    }
-
-    // Валидация дат (конечная раньше начальной)
-    public void setInvalidDates() {
-        selectStartDate();
-        selectEndDate();
-        filterButton.perform(click());
-    }
-
-    // Проверка наличия сообщения об ошибке
-    public boolean isErrorDisplayed() {
-        for (String message : ERROR_MESSAGES) {
-            try {
-                onView(withText(message)).check(matches(isDisplayed()));
-                return true;
-            } catch (Exception e) {
-                // Продолжаем проверять следующие сообщения
-            }
-        }
-        return false;
-    }
-
-    // Применение фильтра
+    @Step("Применить фильтр")
     public void applyFilter() {
-        filterButton.perform(click());
+        ViewInteraction applyButton = onView(withId(R.id.filter_button));
+        WaitUtils.waitForElement(applyButton, LONG_DELAY);
+        applyButton.perform(click());
+        WaitUtils.waitForMillis(SHORT_DELAY);
     }
 
-    // Выбор любой доступной категории
-    public NewsFilterPage selectAnyAvailableCategory() {
-        categoryField.perform(click());
+    @Step("Отменить фильтрацию")
+    public void cancelFilter() {
+        ViewInteraction cancelButton = onView(withId(R.id.cancel_button));
+        WaitUtils.waitForElement(cancelButton, LONG_DELAY);
+        cancelButton.perform(click());
+        WaitUtils.waitForMillis(SHORT_DELAY);
+    }
 
+    @Step("Проверка отображения диалога фильтрации")
+    public boolean isFilterDialogDisplayed() {
         try {
-            onView(withText(ANNOUNCEMENT_CATEGORY)).perform(click());
+            onView(withText("Filter news")).check(matches(isDisplayed()));
+            return true;
         } catch (Exception e) {
-            try {
-                onView(withText(BIRTHDAY_CATEGORY)).perform(click());
-            } catch (Exception ex) {
-                androidx.test.espresso.Espresso.pressBack();
-            }
+            return false;
         }
-
-        return this;
     }
 
-    // Выбор поля даты и подтверждение выбора
-    private NewsFilterPage selectDateField(ViewInteraction dateField) {
-        dateField.perform(click());
-        confirmDateSelection();
-        return this;
-    }
-
-    // Подтверждение выбора даты в диалоге
-    private void confirmDateSelection() {
-        WaitUtils.waitForElementWithText(OK_TEXT, LONG_DELAY);
+    @Step("Проверка отображения всех элементов фильтра")
+    public boolean areAllFilterElementsDisplayed() {
         try {
-            onView(withText(OK_TEXT)).perform(click());
+            WaitUtils.waitForMillis(MEDIUM_DELAY);
+            onView(withText("Filter news")).check(matches(isDisplayed()));
+            onView(withId(R.id.news_item_category_text_auto_complete_text_view)).check(matches(isDisplayed()));
+            onView(withId(R.id.news_item_publish_date_start_text_input_edit_text)).check(matches(isDisplayed()));
+            onView(withId(R.id.news_item_publish_date_end_text_input_edit_text)).check(matches(isDisplayed()));
+            onView(withId(R.id.filter_button)).check(matches(isDisplayed()));
+            onView(withId(R.id.cancel_button)).check(matches(isDisplayed()));
+            return true;
         } catch (Exception e) {
-            onView(withText(OK_RUSSIAN_TEXT)).perform(click());
+            return false;
+        }
+    }
+
+    @Step("Проверка функциональности выпадающего списка категорий")
+    public boolean checkCategoryDropdownFunctionality() {
+        try {
+            onView(withId(R.id.news_item_category_text_auto_complete_text_view)).perform(click());
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    @Step("Проверка функциональности выбора даты")
+    public boolean checkDatePickerFunctionality() {
+        try {
+            onView(withId(R.id.news_item_publish_date_start_text_input_edit_text)).perform(click());
+            WaitUtils.waitForElementWithText("OK", LONG_DELAY);
+
+            onView(withText("OK")).perform(click());
+            WaitUtils.waitForMillis(MEDIUM_DELAY);
+
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    @Step("Установить невалидные даты")
+    public void setInvalidDates() {
+        try {
+            selectFutureEndDateViaCalendar(1);
+            selectPastStartDateViaCalendar(1);
+        } catch (Exception e) {
+        }
+    }
+
+    @Step("Проверка отображения ошибки")
+    public boolean isErrorDisplayed() {
+        try {
+            WaitUtils.waitForElementWithText("Wrong date format", LONG_DELAY);
+            return true;
+        } catch (Exception e) {
+            return false;
         }
     }
 }

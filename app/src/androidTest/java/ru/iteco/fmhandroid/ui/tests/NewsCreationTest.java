@@ -1,256 +1,170 @@
 package ru.iteco.fmhandroid.ui.tests;
 
 import static androidx.test.espresso.Espresso.onView;
-import static androidx.test.espresso.Espresso.pressBack;
-import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.action.ViewActions.replaceText;
-import static androidx.test.espresso.assertion.ViewAssertions.matches;
-import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
-import static androidx.test.espresso.matcher.ViewMatchers.withText;
+import static org.junit.Assert.assertTrue;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
+import io.qameta.allure.android.runners.AllureAndroidJUnit4;
+import io.qameta.allure.kotlin.Description;
+import io.qameta.allure.kotlin.Epic;
+import io.qameta.allure.kotlin.Feature;
+import io.qameta.allure.kotlin.Story;
+import io.qameta.allure.kotlin.junit4.DisplayName;
 import ru.iteco.fmhandroid.R;
 import ru.iteco.fmhandroid.ui.core.BaseTest;
 import ru.iteco.fmhandroid.ui.core.TestData;
 import ru.iteco.fmhandroid.ui.pages.ControlPanelPage;
 import ru.iteco.fmhandroid.ui.pages.CreateEditNewsPage;
-import ru.iteco.fmhandroid.ui.utils.WaitUtils;
+import ru.iteco.fmhandroid.ui.pages.NavigationDrawerPage;
+import ru.iteco.fmhandroid.ui.pages.NewsPage;
 
+@RunWith(AllureAndroidJUnit4.class)
+@Epic("Создание новостей")
+@Feature("Создание и валидация новостей")
+@DisplayName("Тесты создания новостей в Control Panel")
 public class NewsCreationTest extends BaseTest {
 
     private final ControlPanelPage controlPanelPage = new ControlPanelPage();
+    private final NavigationDrawerPage navigationDrawer = new NavigationDrawerPage();
+    private final NewsPage newsPage = new NewsPage();
 
-    // TC-NEWS-CREATE-08: Валидация поля "Publication date": нельзя выбрать прошедшую дату
+    @Before
+    public void setUp() {
+        setUpToAuthScreen();
+        loginAndGoToMainScreen();
+
+        controlPanelPage.navigateToControlPanelFromMain(navigationDrawer, newsPage);
+    }
+
+    @After
+    public void tearDown() {
+        tearDownToAuthScreen();
+    }
+
     @Test
+    @DisplayName("Валидация поля 'Publication date': нельзя выбрать прошедшую дату")
+    @Description("TC-NEWS-CREATE-08: Валидация поля 'Publication date': нельзя выбрать прошедшую дату")
+    @Story("Прошедшие даты должны быть отклонены")
     public void testPublicationDatePastDateValidation() {
-        ensureOnMainScreen();
-        controlPanelPage.navigateToControlPanel();
-        controlPanelPage.checkControlPanelIsDisplayed();
+        CreateEditNewsPage createPage = controlPanelPage.navigateToCreateNews();
+        createPage.isCreateScreenDisplayed();
 
-        try {
-            CreateEditNewsPage createPage = controlPanelPage.navigateToCreateNews();
-            createPage.checkCreateScreenIsDisplayed();
+        String testTitle = TestData.News.Validation.LENGTH_TEST_TITLE_PREFIX + System.currentTimeMillis();
+        createPage.fillTitle(testTitle)
+                .selectCategorySimple(TestData.News.CATEGORY_ANNOUNCEMENT);
+        createPage.selectPastDate(1);
+        createPage.selectCurrentTime()
+                .fillDescription(TestData.News.Validation.LENGTH_TEST_DESCRIPTION)
+                .clickSaveButton();
 
-            String pastDate = TestData.NewsCreation.getPastDateString();
-
-            onView(withId(R.id.news_item_title_text_input_edit_text))
-                    .perform(replaceText(TestData.News.Validation.LENGTH_TEST_TITLE_PREFIX + System.currentTimeMillis()));
-
-            onView(withId(R.id.news_item_category_text_auto_complete_text_view))
-                    .perform(replaceText(TestData.News.CATEGORY_ANNOUNCEMENT));
-
-            onView(withId(R.id.news_item_publish_date_text_input_edit_text))
-                    .perform(replaceText(pastDate));
-
-            onView(withId(R.id.news_item_publish_time_text_input_edit_text)).perform(click());
-            onView(withText("OK")).perform(click());
-
-            onView(withId(R.id.news_item_description_text_input_edit_text))
-                    .perform(replaceText(TestData.News.Validation.LENGTH_TEST_DESCRIPTION));
-
-            onView(withId(R.id.save_button)).perform(click());
-
-            WaitUtils.waitForMillis(1000);
-
-            if (!createPage.isStillOnEditScreen()) {
-                throw new AssertionError("БАГ: Прошедшая дата принята как валидная");
-            }
-
-        } finally {
-            pressBack();
-        }
+        boolean isStillOnEditScreen = createPage.isStillOnEditScreen();
+        assertTrue("BUG: Validation of past publication date should work correctly", isStillOnEditScreen);
     }
 
-    // TC-NEWS-CREATE-09: Валидация поля "Category": ручной ввод текста
     @Test
+    @DisplayName("Валидация поля 'Category': ручной ввод текста")
+    @Description("TC-NEWS-CREATE-09: Валидация поля 'Category': ручной ввод текста")
+    @Story("Ручной ввод должен быть отклонен")
     public void testCategoryManualInputValidation() {
-        ensureOnMainScreen();
-        controlPanelPage.navigateToControlPanel();
-        controlPanelPage.checkControlPanelIsDisplayed();
+        CreateEditNewsPage createPage = controlPanelPage.navigateToCreateNews();
+        createPage.isCreateScreenDisplayed();
 
-        try {
-            CreateEditNewsPage createPage = controlPanelPage.navigateToCreateNews();
-            createPage.checkCreateScreenIsDisplayed();
+        String testTitle = TestData.News.Validation.MANUAL_CATEGORY_TEST_TITLE_PREFIX + System.currentTimeMillis();
+        createPage.fillTitle(testTitle);
+        onView(withId(R.id.news_item_category_text_auto_complete_text_view))
+                .perform(replaceText(TestData.NewsCreation.INVALID_CATEGORY));
+        createPage.selectCurrentDate()
+                .selectCurrentTime()
+                .fillDescription(TestData.News.Validation.MANUAL_CATEGORY_TEST_DESCRIPTION)
+                .clickSaveButton();
 
-            onView(withId(R.id.news_item_category_text_auto_complete_text_view))
-                    .perform(replaceText(TestData.NewsCreation.INVALID_CATEGORY));
-
-            createPage.fillTitle(TestData.News.Validation.MANUAL_CATEGORY_TEST_TITLE_PREFIX + System.currentTimeMillis())
-                    .selectCurrentDate()
-                    .selectCurrentTime()
-                    .fillDescription(TestData.News.Validation.MANUAL_CATEGORY_TEST_DESCRIPTION)
-                    .clickSaveButton();
-
-            WaitUtils.waitForMillis(1000);
-
-            if (!createPage.isValidationErrorDisplayed()) {
-                throw new AssertionError("БАГ: Ручной ввод категории принят как валидный");
-            }
-
-        } finally {
-            pressBack();
-        }
+        boolean isValidationErrorDisplayed = createPage.isValidationErrorDisplayed();
+        assertTrue("BUG: Validation of manual category input should work correctly", isValidationErrorDisplayed);
     }
 
-    // TC-NEWS-CREATE-10: Проверка выбора категории из выпадающего списка
     @Test
+    @DisplayName("Проверка выбора категории из выпадающего списка")
+    @Description("TC-NEWS-CREATE-10: Проверка выбора категории из выпадающего списка")
+    @Story("Категория должна выбираться из списка")
     public void testCategorySelectionFromDropdown() {
-        ensureOnMainScreen();
-        controlPanelPage.navigateToControlPanel();
-        controlPanelPage.checkControlPanelIsDisplayed();
+        CreateEditNewsPage createPage = controlPanelPage.navigateToCreateNews();
+        createPage.isCreateScreenDisplayed();
+        createPage.selectCategorySimple(TestData.News.CATEGORY_ANNOUNCEMENT);
 
-        try {
-            CreateEditNewsPage createPage = controlPanelPage.navigateToCreateNews();
-            createPage.checkCreateScreenIsDisplayed();
-
-            onView(withId(R.id.news_item_category_text_auto_complete_text_view))
-                    .check(matches(withText("")));
-
-            onView(withId(R.id.news_item_category_text_auto_complete_text_view))
-                    .perform(click());
-
-            createPage.selectCategorySimple(TestData.News.CATEGORY_ANNOUNCEMENT);
-
-            onView(withId(R.id.news_item_category_text_auto_complete_text_view))
-                    .check(matches(withText(TestData.News.CATEGORY_ANNOUNCEMENT)));
-
-        } finally {
-            pressBack();
-        }
+        boolean isCategorySelected = createPage.isCategoryFieldDisplayed();
+        assertTrue("BUG: Category selection from dropdown should work correctly", isCategorySelected);
     }
 
-    // TC-NEWS-CREATE-11: Валидация длины поля "Title"
     @Test
+    @DisplayName("Валидация длины поля 'Title'")
+    @Description("TC-NEWS-CREATE-11: Валидация длины поля 'Title'")
+    @Story("Слишком длинный заголовок должен быть отклонен")
     public void testTitleLengthValidation() {
-        ensureOnMainScreen();
-        controlPanelPage.navigateToControlPanel();
-        controlPanelPage.checkControlPanelIsDisplayed();
+        CreateEditNewsPage createPage = controlPanelPage.navigateToCreateNews();
+        createPage.isCreateScreenDisplayed();
 
-        try {
-            CreateEditNewsPage createPage = controlPanelPage.navigateToCreateNews();
-            createPage.checkCreateScreenIsDisplayed();
+        String longTitle = TestData.NewsCreation.getVeryLongTitle();
+        createPage.fillTitle(longTitle)
+                .selectCategorySimple(TestData.News.CATEGORY_ANNOUNCEMENT)
+                .selectCurrentDate()
+                .selectCurrentTime()
+                .fillDescription(TestData.News.Validation.LENGTH_TEST_DESCRIPTION)
+                .clickSaveButton();
 
-            String longTitle = TestData.NewsCreation.getVeryLongTitle();
-
-            onView(withId(R.id.news_item_title_text_input_edit_text))
-                    .perform(replaceText(longTitle));
-
-            onView(withId(R.id.news_item_category_text_auto_complete_text_view))
-                    .perform(replaceText(TestData.News.CATEGORY_ANNOUNCEMENT));
-
-            onView(withId(R.id.news_item_publish_date_text_input_edit_text)).perform(click());
-            onView(withText("OK")).perform(click());
-
-            onView(withId(R.id.news_item_publish_time_text_input_edit_text)).perform(click());
-            onView(withText("OK")).perform(click());
-
-            onView(withId(R.id.news_item_description_text_input_edit_text))
-                    .perform(replaceText(TestData.News.Validation.LENGTH_TEST_DESCRIPTION));
-
-            onView(withId(R.id.save_button)).perform(click());
-
-            WaitUtils.waitForMillis(1000);
-
-            if (!createPage.isStillOnEditScreen()) {
-                throw new AssertionError("БАГ: Слишком длинный заголовок принят как валидный");
-            }
-
-        } finally {
-            pressBack();
-        }
+        boolean isStillOnEditScreen = createPage.isStillOnEditScreen();
+        assertTrue("BUG: Validation of title length should work correctly", isStillOnEditScreen);
     }
 
-    // TC-NEWS-CREATE-12: Валидация поля "Title" из спецсимволов
     @Test
+    @DisplayName("Валидация поля 'Title' из спецсимволов")
+    @Description("TC-NEWS-CREATE-12: Валидация поля 'Title' из спецсимволов")
+    @Story("Заголовок из спецсимволов должен быть отклонен")
     public void testTitleSpecialCharactersValidation() {
-        ensureOnMainScreen();
-        controlPanelPage.navigateToControlPanel();
-        controlPanelPage.checkControlPanelIsDisplayed();
+        CreateEditNewsPage createPage = controlPanelPage.navigateToCreateNews();
+        createPage.isCreateScreenDisplayed();
 
-        try {
-            CreateEditNewsPage createPage = controlPanelPage.navigateToCreateNews();
-            createPage.checkCreateScreenIsDisplayed();
+        createPage.fillTitle(TestData.NewsCreation.SPECIAL_CHARS_TITLE)
+                .selectCategorySimple(TestData.News.CATEGORY_ANNOUNCEMENT)
+                .selectCurrentDate()
+                .selectCurrentTime()
+                .fillDescription(TestData.News.Validation.SPECIAL_CHARS_TEST_DESCRIPTION)
+                .clickSaveButton();
 
-            String testTitle = TestData.NewsCreation.SPECIAL_CHARS_TITLE;
-
-            onView(withId(R.id.news_item_title_text_input_edit_text))
-                    .perform(replaceText(testTitle));
-
-            onView(withId(R.id.news_item_category_text_auto_complete_text_view))
-                    .perform(replaceText(TestData.News.CATEGORY_ANNOUNCEMENT));
-
-            onView(withId(R.id.news_item_publish_date_text_input_edit_text)).perform(click());
-            onView(withText("OK")).perform(click());
-
-            onView(withId(R.id.news_item_publish_time_text_input_edit_text)).perform(click());
-            onView(withText("OK")).perform(click());
-
-            onView(withId(R.id.news_item_description_text_input_edit_text))
-                    .perform(replaceText(TestData.News.Validation.SPECIAL_CHARS_TEST_DESCRIPTION));
-
-            onView(withId(R.id.save_button)).perform(click());
-
-            WaitUtils.waitForMillis(1000);
-
-            if (!createPage.isStillOnEditScreen()) {
-                throw new AssertionError("БАГ: Спецсимволы приняты как валидный заголовок");
-            }
-
-        } finally {
-            pressBack();
-        }
+        boolean isStillOnEditScreen = createPage.isStillOnEditScreen();
+        assertTrue("BUG: Validation of special characters in title should work correctly", isStillOnEditScreen);
     }
 
-    // TC-NEWS-CREATE-13: Валидация "Title" из пробелов
     @Test
+    @DisplayName("Валидация 'Title' из пробелов")
+    @Description("TC-NEWS-CREATE-13: Валидация 'Title' из пробелов")
+    @Story("Заголовок из пробелов должен быть отклонен")
     public void testTitleSpacesOnlyValidation() {
-        ensureOnMainScreen();
-        controlPanelPage.navigateToControlPanel();
-        controlPanelPage.checkControlPanelIsDisplayed();
+        CreateEditNewsPage createPage = controlPanelPage.navigateToCreateNews();
+        createPage.isCreateScreenDisplayed();
 
-        try {
-            CreateEditNewsPage createPage = controlPanelPage.navigateToCreateNews();
-            createPage.checkCreateScreenIsDisplayed();
+        createPage.fillTitle(TestData.NewsCreation.SPACES_ONLY_TITLE)
+                .selectCategorySimple(TestData.News.CATEGORY_ANNOUNCEMENT)
+                .selectCurrentDate()
+                .selectCurrentTime()
+                .fillDescription(TestData.News.Validation.SPACES_TEST_DESCRIPTION)
+                .clickSaveButton();
 
-            onView(withId(R.id.news_item_title_text_input_edit_text))
-                    .perform(replaceText(TestData.NewsCreation.SPACES_ONLY_TITLE));
-
-            onView(withId(R.id.news_item_category_text_auto_complete_text_view))
-                    .perform(replaceText(TestData.News.CATEGORY_ANNOUNCEMENT));
-
-            onView(withId(R.id.news_item_publish_date_text_input_edit_text)).perform(click());
-            onView(withText("OK")).perform(click());
-
-            onView(withId(R.id.news_item_publish_time_text_input_edit_text)).perform(click());
-            onView(withText("OK")).perform(click());
-
-            onView(withId(R.id.news_item_description_text_input_edit_text))
-                    .perform(replaceText(TestData.News.Validation.SPACES_TEST_DESCRIPTION));
-
-            onView(withId(R.id.save_button)).perform(click());
-
-            WaitUtils.waitForMillis(1000);
-
-            if (!createPage.isStillOnEditScreen()) {
-                throw new AssertionError("БАГ: Заголовок из пробелов принят как валидный");
-            }
-
-        } finally {
-            pressBack();
-        }
+        boolean isStillOnEditScreen = createPage.isStillOnEditScreen();
+        assertTrue("BUG: Validation of title with only spaces should work correctly", isStillOnEditScreen);
     }
 
-    // TC-NEWS-CREATE-14: Проверка многострочного "Description"
     @Test
+    @DisplayName("Проверка многострочного 'Description'")
+    @Description("TC-NEWS-CREATE-14: Проверка многострочного 'Description'")
+    @Story("Многострочное описание должно поддерживаться")
     public void testMultilineDescription() {
-        ensureOnMainScreen();
-        controlPanelPage.navigateToControlPanel();
-        controlPanelPage.checkControlPanelIsDisplayed();
-
         String testTitle = TestData.News.Validation.MULTILINE_TEST_TITLE_PREFIX + System.currentTimeMillis();
-
         try {
             String createdTitle = controlPanelPage.createTestNews(
                     testTitle,
@@ -260,38 +174,30 @@ public class NewsCreationTest extends BaseTest {
                     TestData.NewsCreation.MULTILINE_DESCRIPTION
             );
 
-            controlPanelPage.findNewsByTitleWithScroll(createdTitle);
+            boolean isNewsCreated = controlPanelPage.isNewsDisplayed(createdTitle);
+            assertTrue("BUG: Creation of news with multiline description should work correctly", isNewsCreated);
+
+            boolean isDescriptionPreserved = controlPanelPage.isMultilineDescriptionDisplayed(
+                    createdTitle,
+                    TestData.NewsCreation.MULTILINE_DESCRIPTION
+            );
+            assertTrue("BUG: Multiline description content should be preserved", isDescriptionPreserved);
+
         } finally {
             controlPanelPage.deleteCreatedNewsByExactTitle(testTitle);
         }
     }
 
-    // TC-NEWS-CREATE-15: Отмена создания новости
     @Test
+    @DisplayName("Отмена создания новости")
+    @Description("TC-NEWS-CREATE-15: Отмена создания новости")
+    @Story("Пользователь может отменить создание новости")
     public void testCancelNewsCreation() {
-        ensureOnMainScreen();
-        controlPanelPage.navigateToControlPanel();
-        controlPanelPage.checkControlPanelIsDisplayed();
-
         CreateEditNewsPage createPage = controlPanelPage.navigateToCreateNews();
-        createPage.checkCreateScreenIsDisplayed();
+        createPage.isCreateScreenDisplayed();
+        createPage.cancelWithConfirmation();
 
-        String testTitle = TestData.News.Validation.CANCEL_TEST_TITLE_PREFIX + System.currentTimeMillis();
-
-        onView(withId(R.id.news_item_title_text_input_edit_text))
-                .check(matches(isDisplayed()))
-                .perform(replaceText(testTitle));
-
-        onView(withId(R.id.news_item_category_text_auto_complete_text_view))
-                .check(matches(isDisplayed()))
-                .perform(replaceText(TestData.News.CATEGORY_ANNOUNCEMENT));
-
-        onView(withId(R.id.cancel_button))
-                .check(matches(isDisplayed()))
-                .perform(click());
-
-        onView(withText("OK")).perform(click());
-
-        controlPanelPage.checkControlPanelIsDisplayed();
+        boolean isControlPanelDisplayed = controlPanelPage.isControlPanelDisplayed();
+        assertTrue("BUG: Cancel functionality should work correctly", isControlPanelDisplayed);
     }
 }

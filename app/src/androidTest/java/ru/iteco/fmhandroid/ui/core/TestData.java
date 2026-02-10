@@ -2,6 +2,7 @@ package ru.iteco.fmhandroid.ui.core;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Random;
 
 public class TestData {
 
@@ -48,46 +49,24 @@ public class TestData {
             public static final String TEST_DELETION_DESCRIPTION = "Automated test news for deletion";
             public static final String DATE_TEST_TITLE_PREFIX = "ТестДаты_";
             public static final String DATE_TEST_DESCRIPTION_PREFIX = "Новость для теста дат: ";
-
-            // Даты
-            public static final String DEFAULT_DATE = "01.01.2025";
         }
 
         // Тестовые данные для валидации
         public static class Validation {
-
-            // Тесты длины заголовка
             public static final String LENGTH_TEST_TITLE_PREFIX = "Тест прошедшей даты_";
             public static final String LENGTH_TEST_DESCRIPTION = "Описание для теста прошедшей даты";
-
-            // Тесты категорий
             public static final String MANUAL_CATEGORY_TEST_TITLE_PREFIX = "Тест ручного ввода категории_";
             public static final String MANUAL_CATEGORY_TEST_DESCRIPTION = "Описание для теста ручного ввода категории";
-
-            // Тесты спецсимволов
             public static final String SPECIAL_CHARS_TEST_DESCRIPTION = "Описание для теста спецсимволов";
-
-            // Тесты пробелов
             public static final String SPACES_TEST_DESCRIPTION = "Описание для теста пробелов";
-
-            // Тесты многострочного описания
             public static final String MULTILINE_TEST_TITLE_PREFIX = "Тест многострочного описания_";
-
-            // Тесты отмены
-            public static final String CANCEL_TEST_TITLE_PREFIX = "Тест отмены создания_";
-        }
-
-        // Общие тестовые данные
-        public static class Common {
-            public static final String DATE_TEST_TITLE = "Тест даты_";
-            public static final String DATE_TEST_DESCRIPTION = "Описание для теста дат";
         }
 
         // Объект новости для E2E теста создания
         public static final NewsItem E2E_NEWS = new NewsItem(
                 "Автотест: Важное объявление",
                 CATEGORY_ANNOUNCEMENT,
-                getFutureDate(1),
+                null,
                 E2E_TIME,
                 "Это автоматически созданная новость для тестирования функционала.",
                 true
@@ -106,6 +85,42 @@ public class TestData {
         public static String getTime() {
             return DEFAULT_TIME;
         }
+
+        // Генерация уникального заголовка с указанным префиксом
+        public static String generateUniqueTitle(String prefix) {
+            return prefix + System.currentTimeMillis() + "_" + new Random().nextInt(1000);
+        }
+
+        // Получение даты на указанное количество дней от текущей
+        public static String getDateForDaysFromNow(int days) {
+            LocalDate date = LocalDate.now().plusDays(days);
+            return date.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+        }
+
+        // Получение текущей даты в формате dd.MM.yyyy
+        public static String getCurrentDate() {
+            return LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+        }
+
+        // Утилиты для тестов сортировки
+        public static class Sorting {
+            public static final String TODAY_NEWS_PREFIX = "СортСегодня";
+            public static final String TOMORROW_NEWS_PREFIX = "СортЗавтра";
+            public static final String TODAY_TIME = "20:00";
+            public static final String TOMORROW_TIME = "09:00";
+
+            public static String getTodayDate() {
+                return getCurrentDate();
+            }
+
+            public static String getTomorrowDate() {
+                return getDateForDaysFromNow(1);
+            }
+
+            public static String generateUniqueTitle(String prefix) {
+                return News.generateUniqueTitle(prefix);
+            }
+        }
     }
 
     // Объект новости
@@ -117,7 +132,6 @@ public class TestData {
         public final String description;
         public final boolean active;
 
-        // Конструктор объекта новости
         public NewsItem(String title, String category, String date,
                         String time, String description, boolean active) {
             this.title = title;
@@ -131,7 +145,6 @@ public class TestData {
 
     // Класс для тестовых данных создания новостей
     public static class NewsCreation {
-        // Данные для теста длины заголовка
         public static String getVeryLongTitle() {
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < 50; i++) {
@@ -140,27 +153,13 @@ public class TestData {
             return sb.toString();
         }
 
-        // Данные для теста спецсимволов
         public static final String SPECIAL_CHARS_TITLE = "!@#$%^&*";
-
-        // Данные для теста пробелов
         public static final String SPACES_ONLY_TITLE = "   ";
-
-        // Данные для теста многострочного описания
         public static final String MULTILINE_DESCRIPTION =
                 "Первая строка описания.\n" +
                         "Вторая строка с переносом.\n" +
                         "Третья строка.\n" +
                         "Еще одна строка для тестирования.";
-
-        // Невалидная категория для теста ручного ввода
         public static final String INVALID_CATEGORY = "TestInvalidCategory";
-
-        // Данные для теста прошедшей даты
-        public static String getPastDateString() {
-            LocalDate pastDate = LocalDate.now().minusDays(1);
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-            return pastDate.format(formatter);
-        }
     }
 }

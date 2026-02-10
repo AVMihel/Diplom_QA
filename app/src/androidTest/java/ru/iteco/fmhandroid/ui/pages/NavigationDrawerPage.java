@@ -5,26 +5,18 @@ import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.isEnabled;
-import static androidx.test.espresso.matcher.ViewMatchers.isNotEnabled;
-import static androidx.test.espresso.matcher.ViewMatchers.withClassName;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.is;
-
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.ViewParent;
 
 import androidx.test.espresso.ViewInteraction;
 
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
-import org.hamcrest.TypeSafeMatcher;
-
+import io.qameta.allure.kotlin.Step;
+import io.qameta.allure.kotlin.junit4.DisplayName;
 import ru.iteco.fmhandroid.R;
 import ru.iteco.fmhandroid.ui.utils.WaitUtils;
 
+@DisplayName("Страница бокового меню навигации")
 public class NavigationDrawerPage {
 
     private static final int LONG_DELAY = 1500;
@@ -38,125 +30,94 @@ public class NavigationDrawerPage {
     private static final int MENU_ITEM_ID = android.R.id.title;
     private static final int MAIN_MENU_BUTTON_ID = R.id.main_menu_image_button;
     private static final int ABOUT_BACK_BUTTON_ID = R.id.about_back_image_button;
-    private static final int ABOUT_CONTAINER_ID = R.id.container_custom_app_bar_include_on_fragment_about;
 
-    // Открытие бокового меню
+    @Step("Открытие бокового меню")
     public NavigationDrawerPage openMenu() {
         ViewInteraction menuButton = onView(
                 allOf(withId(MAIN_MENU_BUTTON_ID), isDisplayed())
         );
-        WaitUtils.waitForElement(menuButton, LONG_DELAY);
+        waitForElement(menuButton, LONG_DELAY);
         menuButton.perform(click());
         return this;
     }
 
-    // Проверка отображения меню
+    @Step("Проверка отображения меню")
     public NavigationDrawerPage checkMenuIsDisplayed() {
         WaitUtils.waitForElementWithText(MAIN_MENU_TEXT, LONG_DELAY);
         return this;
     }
 
-    // Проверка, что пункт меню "Main" отображается и активен
-    public NavigationDrawerPage checkMainMenuItemIsActive() {
-        checkMenuItem(MAIN_MENU_TEXT, true, "'Main' menu item should be active");
-        return this;
+    @Step("Получение состояния пункта меню 'Main'")
+    public boolean isMainMenuItemActive() {
+        return isMenuItemActive(MAIN_MENU_TEXT);
     }
 
-    // Проверка, что пункт меню "News" отображается и активен
-    public NavigationDrawerPage checkNewsMenuItemIsActive() {
-        checkMenuItem(NEWS_MENU_TEXT, true, "'News' menu item should be active");
-        return this;
+    @Step("Получение состояния пункта меню 'News'")
+    public boolean isNewsMenuItemActive() {
+        return isMenuItemActive(NEWS_MENU_TEXT);
     }
 
-    // Проверка, что пункт меню "News" отображается и неактивен
-    public NavigationDrawerPage checkNewsMenuItemIsInactive() {
-        checkMenuItem(NEWS_MENU_TEXT, false, "'News' menu item should be inactive on this screen");
-        return this;
+    @Step("Получение состояния пункта меню 'About'")
+    public boolean isAboutMenuItemActive() {
+        return isMenuItemActive(ABOUT_MENU_TEXT);
     }
 
-    // Проверка, что пункт меню "About" отображается и активен
-    public NavigationDrawerPage checkAboutMenuItemIsActive() {
-        checkMenuItem(ABOUT_MENU_TEXT, true, "'About' menu item should be active");
-        return this;
-    }
-
-    // Клик по пункту меню "Main"
+    @Step("Клик по пункту меню 'Main'")
     public NavigationDrawerPage clickMainMenuItem() {
         clickMenuItem(MAIN_MENU_TEXT);
         return this;
     }
 
-    // Клик по пункту меню "News"
+    @Step("Клик по пункту меню 'News'")
     public NavigationDrawerPage clickNewsMenuItem() {
         clickMenuItem(NEWS_MENU_TEXT);
         return this;
     }
 
-    // Клик по пункту меню "About"
+    @Step("Клик по пункту меню 'About'")
     public NavigationDrawerPage clickAboutMenuItem() {
         clickMenuItem(ABOUT_MENU_TEXT);
         return this;
     }
 
-    // Нажатие кнопки "Назад" на экране "About"
+    @Step("Нажатие кнопки 'Назад' на экране 'About'")
     public NavigationDrawerPage clickAboutBackButton() {
-        ViewInteraction backButton = onView(
-                allOf(withId(ABOUT_BACK_BUTTON_ID),
-                        childAtPosition(
-                                allOf(withId(ABOUT_CONTAINER_ID),
-                                        childAtPosition(
-                                                withClassName(is("android.widget.LinearLayout")),
-                                                0)),
-                                1),
-                        isDisplayed())
-        );
-        backButton.perform(click());
+        waitForElementWithId(ABOUT_BACK_BUTTON_ID, LONG_DELAY);
+        onView(withId(ABOUT_BACK_BUTTON_ID)).perform(click());
         return this;
     }
 
-    // Универсальная проверка пункта меню
-    private void checkMenuItem(String menuText, boolean shouldBeActive, String errorMessage) {
-        try {
-            ViewInteraction menuItem = onView(
-                    allOf(withId(MENU_ITEM_ID), withText(menuText), isDisplayed())
-            );
-            WaitUtils.waitForElement(menuItem, LONG_DELAY);
+    @Step("Проверка активности пункта меню")
+    private boolean isMenuItemActive(String menuText) {
+        ViewInteraction menuItem = onView(
+                allOf(withId(MENU_ITEM_ID), withText(menuText), isDisplayed())
+        );
+        waitForElement(menuItem, LONG_DELAY);
 
-            if (shouldBeActive) {
-                menuItem.check(matches(isEnabled()));
-            } else {
-                menuItem.check(matches(isNotEnabled()));
-            }
-        } catch (AssertionError e) {
-            throw new AssertionError(errorMessage);
+        try {
+            menuItem.check(matches(isEnabled()));
+            return true;
+        } catch (Exception e) {
+            return false;
         }
     }
 
-    // Универсальный клик по пункту меню
+    @Step("Клик по пункту меню: {menuText}")
     private void clickMenuItem(String menuText) {
         ViewInteraction menuItem = onView(
                 allOf(withId(MENU_ITEM_ID), withText(menuText), isDisplayed())
         );
-        WaitUtils.waitForElement(menuItem, LONG_DELAY);
+        waitForElement(menuItem, LONG_DELAY);
         menuItem.perform(click());
     }
 
-    // Поиск дочернего элемента по позиции в иерархии View
-    private static Matcher<View> childAtPosition(
-            final Matcher<View> parentMatcher, final int position) {
-        return new TypeSafeMatcher<View>() {
-            @Override
-            public void describeTo(Description description) {
-                description.appendText("Child at position " + position + " in parent ");
-                parentMatcher.describeTo(description);
-            }
+    // Вспомогательные методы
 
-            @Override
-            public boolean matchesSafely(View view) {
-                ViewParent parent = view.getParent();
-                return parent instanceof ViewGroup && parentMatcher.matches(parent)
-                        && view.equals(((ViewGroup) parent).getChildAt(position));
-            }
-        };
+    private void waitForElement(ViewInteraction element, long timeout) {
+        WaitUtils.waitForElement(element, timeout);
+    }
+
+    private void waitForElementWithId(int elementId, long timeout) {
+        WaitUtils.waitForElementWithId(elementId, timeout);
     }
 }

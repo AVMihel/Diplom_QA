@@ -2,7 +2,6 @@ package ru.iteco.fmhandroid.ui.pages;
 
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
-import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
@@ -11,83 +10,90 @@ import static org.hamcrest.Matchers.allOf;
 import androidx.test.espresso.ViewInteraction;
 import androidx.test.espresso.contrib.RecyclerViewActions;
 
+import io.qameta.allure.kotlin.Step;
+import io.qameta.allure.kotlin.junit4.DisplayName;
 import ru.iteco.fmhandroid.R;
 import ru.iteco.fmhandroid.ui.utils.WaitUtils;
 
+@DisplayName("Страница цитат")
 public class QuotesPage {
 
-    private static final int LONG_DELAY = 1500;
+    private static final int SHORT_DELAY = 200;
+    private static final int MEDIUM_DELAY = 500;
+    private static final int LONG_DELAY = 2000;
 
     // Текстовые константы
     private static final String QUOTES_TITLE_TEXT = "Love is all";
-    private static final String QUOTE_DESCRIPTION_HIDDEN_ERROR = "Quote description should be hidden";
 
     // ID элементов
     private static final int QUOTES_TITLE_ID = R.id.our_mission_title_text_view;
     private static final int QUOTES_RECYCLER_VIEW_ID = R.id.our_mission_item_list_recycler_view;
     private static final int QUOTE_DESCRIPTION_ID = R.id.our_mission_item_description_text_view;
 
-    // Проверяет, что экран Quotes отображается
-    public QuotesPage checkQuotesScreenIsDisplayed() {
-        WaitUtils.waitForElement(getQuotesTitle(), LONG_DELAY);
-        return this;
+    @Step("Проверка, что экран цитат отображается")
+    public boolean isQuotesScreenDisplayed() {
+        WaitUtils.waitForMillis(MEDIUM_DELAY);
+        return isElementDisplayedQuickly(getQuotesTitle(), LONG_DELAY);
     }
 
-    // Проверяет, что список цитат отображается
+    @Step("Проверка отображения списка цитат")
     public QuotesPage checkQuotesListIsDisplayed() {
-        WaitUtils.waitForElement(getQuotesRecyclerView(), LONG_DELAY);
+        WaitUtils.waitForMillis(MEDIUM_DELAY);
+        waitForElement(getQuotesRecyclerView(), LONG_DELAY);
         return this;
     }
 
-    // Кликает на стрелку разворачивания для цитаты по указанной позиции
+    @Step("Развернуть цитату по позиции {position}")
     public QuotesPage expandQuoteAtPosition(int position) {
         checkQuotesListIsDisplayed();
         getQuotesRecyclerView().perform(
                 RecyclerViewActions.actionOnItemAtPosition(position, click())
         );
+        delay();
         return this;
     }
 
-    // Проверяет, что описание цитаты отображается (развернутое состояние)
-    public QuotesPage checkQuoteDescriptionIsDisplayed() {
-        WaitUtils.waitForElement(getQuoteDescriptionView(), LONG_DELAY);
-        return this;
+    @Step("Проверка, что описание цитаты отображается")
+    public boolean isQuoteDescriptionDisplayed() {
+        WaitUtils.waitForMillis(MEDIUM_DELAY);
+        return isElementDisplayedQuickly(getQuoteDescriptionView(), LONG_DELAY);
     }
 
-    // Проверяет, что описание цитаты скрыто (свернутое состояние)
-    public QuotesPage checkQuoteDescriptionIsHidden() {
+    @Step("Проверка, что описание цитаты скрыто")
+    public boolean isQuoteDescriptionHidden() {
+        WaitUtils.waitForMillis(MEDIUM_DELAY);
+        return !isElementDisplayedQuickly(getQuoteDescriptionView(), SHORT_DELAY);
+    }
+
+    // Вспомогательные методы
+    private void waitForElement(ViewInteraction element, long timeout) {
+        WaitUtils.waitForElement(element, timeout);
+    }
+
+    private void delay() {
+        WaitUtils.waitForMillis(SHORT_DELAY);
+    }
+
+    private boolean isElementDisplayedQuickly(ViewInteraction view, long timeout) {
         try {
-            getQuoteDescriptionView().check(matches(isDisplayed()));
-            throw new AssertionError(QUOTE_DESCRIPTION_HIDDEN_ERROR);
+            waitForElement(view, timeout);
+            return true;
         } catch (Exception e) {
-            // Ожидаемое поведение - элемент не отображается
+            return false;
         }
-        return this;
     }
 
-    // Возвращается на главный экран через боковое меню
-    public void goBackToMainScreen() {
-        NavigationDrawerPage navigationDrawer = new NavigationDrawerPage();
-        navigationDrawer.openMenu().clickMainMenuItem();
-    }
-
-    // Вспомогательные методы для получения элементов интерфейса
+    // Получение элементов
 
     private ViewInteraction getQuotesTitle() {
-        return onView(
-                allOf(withId(QUOTES_TITLE_ID), withText(QUOTES_TITLE_TEXT))
-        );
+        return onView(allOf(withId(QUOTES_TITLE_ID), withText(QUOTES_TITLE_TEXT)));
     }
 
     private ViewInteraction getQuotesRecyclerView() {
-        return onView(
-                allOf(withId(QUOTES_RECYCLER_VIEW_ID), isDisplayed())
-        );
+        return onView(allOf(withId(QUOTES_RECYCLER_VIEW_ID), isDisplayed()));
     }
 
     private ViewInteraction getQuoteDescriptionView() {
-        return onView(
-                allOf(withId(QUOTE_DESCRIPTION_ID), isDisplayed())
-        );
+        return onView(allOf(withId(QUOTE_DESCRIPTION_ID), isDisplayed()));
     }
 }

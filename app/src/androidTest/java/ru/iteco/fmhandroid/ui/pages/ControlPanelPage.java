@@ -13,6 +13,7 @@ import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withParent;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.Matchers.allOf;
+import static org.junit.Assert.assertTrue;
 
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,15 +26,19 @@ import androidx.test.espresso.ViewInteraction;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
-import org.junit.Assert;
 
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Pattern;
 
+import io.qameta.allure.kotlin.Step;
+import io.qameta.allure.kotlin.junit4.DisplayName;
 import ru.iteco.fmhandroid.R;
 import ru.iteco.fmhandroid.ui.core.TestData;
 import ru.iteco.fmhandroid.ui.utils.WaitUtils;
 
+@DisplayName("Страница Control Panel для управления новостями")
 public class ControlPanelPage {
 
     private static final int SHORT_DELAY = 200;
@@ -41,43 +46,54 @@ public class ControlPanelPage {
     private static final int LONG_DELAY = 1500;
     private static final Pattern DATE_PATTERN = Pattern.compile("(\\d{2})\\.(\\d{2})\\.(\\d{4})");
 
-    private final NavigationDrawerPage navigationDrawer = new NavigationDrawerPage();
-    private final NewsPage newsPage = new NewsPage();
+    private static final int ADD_NEWS_BUTTON_ID = R.id.add_news_image_view;
+    private static final int SORT_BUTTON_ID = R.id.sort_news_material_button;
+    private static final int FILTER_BUTTON_ID = R.id.filter_news_material_button;
+    private static final int NEWS_LIST_RECYCLER_ID = R.id.news_list_recycler_view;
+    private static final int EDIT_NEWS_BUTTON_ID = R.id.edit_news_material_button;
+    private static final int NEWS_CARD_ID = R.id.news_item_material_card_view;
+    private static final int NEWS_TITLE_VIEW_ID = R.id.news_item_title_text_view;
+    private static final int DELETE_NEWS_ICON_ID = R.id.delete_news_item_image_view;
+    private static final int EDIT_NEWS_ICON_ID = R.id.edit_news_item_image_view;
+    private static final int EXPAND_NEWS_ICON_ID = R.id.view_news_item_image_view;
+    private static final int CREATION_DATE_ID = R.id.news_item_create_date_text_view;
+    private static final int[] CONTROL_PANEL_IDS = {ADD_NEWS_BUTTON_ID, SORT_BUTTON_ID, NEWS_LIST_RECYCLER_ID};
 
-    // Переход в Control Panel с главного экрана
-    public void navigateToControlPanel() {
+
+    @Step("Навигация в Control Panel с главного экрана")
+    public ControlPanelPage navigateToControlPanelFromMain(NavigationDrawerPage navigationDrawer, NewsPage newsPage) {
         navigationDrawer.openMenu().clickNewsMenuItem();
-        newsPage.checkNewsListScreenIsDisplayed();
+        assertTrue("News page should be displayed", newsPage.isSortButtonDisplayed());
         clickEditNewsButton();
-        waitForControlPanel();
+        assertTrue("Control Panel should be displayed", isControlPanelDisplayed());
+        return this;
     }
-
-    // Проверка отображения Control Panel
+    @Step("Проверка отображения Control Panel")
     public void checkControlPanelIsDisplayed() {
-        waitForControlPanel();
+        WaitUtils.waitForAnyElement(CONTROL_PANEL_IDS, LONG_DELAY);
     }
 
-    // Ожидание загрузки Control Panel
-    private void waitForControlPanel() {
-        waitForControlPanel(LONG_DELAY);
+    @Step("Проверка отображения Control Panel (возвращает 'boolean')")
+    public boolean isControlPanelDisplayed() {
+        try {
+            checkControlPanelIsDisplayed();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
-    private void waitForControlPanel(long timeout) {
-        int[] controlPanelIds = {R.id.add_news_image_view, R.id.sort_news_material_button,
-                R.id.news_list_recycler_view};
-        WaitUtils.waitForAnyElement(controlPanelIds, timeout);
-        WaitUtils.waitForMillis(MEDIUM_DELAY);
+    @Step("Нажатие кнопки редактирования новостей")
+    public void clickEditNewsButton() {
+        ViewInteraction editButton = onView(allOf(withId(EDIT_NEWS_BUTTON_ID), isDisplayed()));
+        WaitUtils.waitForElement(editButton, LONG_DELAY);
+        editButton.perform(click());
     }
 
-    // Переход к созданию новой новости
+    @Step("Навигация к созданию новой новости")
     public CreateEditNewsPage navigateToCreateNews() {
         checkControlPanelIsDisplayed();
-
-        ViewInteraction addButton = onView(
-                allOf(withId(R.id.add_news_image_view),
-                        withContentDescription("Add news button"),
-                        isDisplayed())
-        );
+        ViewInteraction addButton = onView(allOf(withId(ADD_NEWS_BUTTON_ID), withContentDescription("Add news button"), isDisplayed()));
         WaitUtils.waitForElement(addButton, LONG_DELAY);
         addButton.perform(click());
 
@@ -86,13 +102,11 @@ public class ControlPanelPage {
         return createPage;
     }
 
-    // Переход к редактированию новости
+    @Step("Навигация к редактированию новости")
     public CreateEditNewsPage navigateToEditNews() {
         checkControlPanelIsDisplayed();
-
-        ViewInteraction recyclerView = onView(withId(R.id.news_list_recycler_view));
+        ViewInteraction recyclerView = onView(allOf(withId(NEWS_LIST_RECYCLER_ID), isDisplayed()));
         WaitUtils.waitForElement(recyclerView, LONG_DELAY);
-
         recyclerView.perform(actionOnItemAtPosition(0, new ClickEditButtonAction()));
 
         CreateEditNewsPage editPage = new CreateEditNewsPage();
@@ -100,85 +114,65 @@ public class ControlPanelPage {
         return editPage;
     }
 
-    // Открытие диалога фильтрации новостей
-    public NewsFilterPage openFilterDialog() {
-        ViewInteraction filterButton = onView(
-                allOf(withId(R.id.filter_news_material_button), isDisplayed())
-        );
+    @Step("Открыть фильтр новостей")
+    public void openNewsFilter() {
+        ViewInteraction filterButton = onView(allOf(withId(FILTER_BUTTON_ID), isDisplayed()));
         WaitUtils.waitForElement(filterButton, LONG_DELAY);
         filterButton.perform(click());
-
-        NewsFilterPage filterPage = new NewsFilterPage();
-        filterPage.checkFilterDialogIsDisplayed();
-        return filterPage;
+        WaitUtils.waitForElementWithId(R.id.filter_news_title_text_view, LONG_DELAY);
     }
 
-    // Клик по кнопке сортировки новостей
+    @Step("Клик по кнопке сортировки новостей")
     public void clickSortButton() {
-        ViewInteraction sortButton = onView(
-                allOf(withId(R.id.sort_news_material_button), isDisplayed())
-        );
+        ViewInteraction sortButton = onView(allOf(withId(SORT_BUTTON_ID), isDisplayed()));
         WaitUtils.waitForElement(sortButton, LONG_DELAY);
         sortButton.perform(click());
     }
 
-    // Проверка отображения отсортированного списка новостей
-    public void checkNewsAreSorted() {
-        onView(withId(R.id.news_list_recycler_view)).check(matches(isDisplayed()));
-    }
-
-    // Создание тестовой новости с указанными параметрами
+    @Step("Создание тестовой новости")
     public String createTestNews(String title, String category, String date, String time, String description) {
         CreateEditNewsPage createPage = navigateToCreateNews();
         WaitUtils.waitForElementWithId(R.id.news_item_title_text_input_edit_text, LONG_DELAY);
 
         createPage.fillTitle(title);
-        delay();
-
+        WaitUtils.waitForMillis(SHORT_DELAY);
         createPage.selectCategorySimple(category);
-        delay();
-
-        onView(withId(R.id.news_item_publish_date_text_input_edit_text))
-                .perform(replaceText(date));
-        delay();
-
-        onView(withId(R.id.news_item_publish_time_text_input_edit_text))
-                .perform(replaceText(time));
-        delay();
-
+        WaitUtils.waitForMillis(SHORT_DELAY);
+        onView(withId(R.id.news_item_publish_date_text_input_edit_text)).perform(replaceText(date));
+        WaitUtils.waitForMillis(SHORT_DELAY);
+        onView(withId(R.id.news_item_publish_time_text_input_edit_text)).perform(replaceText(time));
+        WaitUtils.waitForMillis(SHORT_DELAY);
         createPage.fillDescription(description);
-        delay();
+        WaitUtils.waitForMillis(SHORT_DELAY);
 
         createPage.clickSaveButton();
-        waitForControlPanel();
+        checkControlPanelIsDisplayed();
 
-        boolean created = verifyNewsCreated(title, LONG_DELAY);
-        if (!created) {
-            throw new RuntimeException();
-        }
-
+        boolean created = verifyNewsCreated(title);
+        assertTrue("Failed to create news with title: " + title, created);
         return title;
     }
 
-    // Создание новости для теста удаления
+    @Step("Проверка создания новости")
+    public boolean verifyNewsCreated(String title) {
+        return verifyNewsCreatedWithTimeout(title, LONG_DELAY);
+    }
+
+    @Step("Создание новости для теста удаления")
     public String createNewsForDeletionTest() {
         String title = TestData.News.E2E.TEST_TITLE_PREFIX + System.currentTimeMillis();
-        String description = TestData.News.E2E.TEST_DELETION_DESCRIPTION;
-
-        return createTestNews(
+        return createTestNewsWithCalendar(
                 title,
                 TestData.News.CATEGORY_ANNOUNCEMENT,
-                TestData.News.E2E.DEFAULT_DATE,
+                1,
                 TestData.News.DEFAULT_TIME,
-                description
+                TestData.News.E2E.TEST_DELETION_DESCRIPTION
         );
     }
 
-    // Создание новости для теста дат с указанным годом
+    @Step("Создание новости для теста дат")
     public String createNewsForDateTest(int year) {
         String title = TestData.News.E2E.DATE_TEST_TITLE_PREFIX + year + "_" + System.currentTimeMillis();
-        String description = TestData.News.E2E.DATE_TEST_DESCRIPTION_PREFIX + year;
-
         LocalDate currentDate = LocalDate.now();
         String date = String.format("%02d.%02d.%d",
                 currentDate.getDayOfMonth(),
@@ -190,27 +184,338 @@ public class ControlPanelPage {
                 TestData.News.CATEGORY_ANNOUNCEMENT,
                 date,
                 TestData.News.DEFAULT_TIME,
-                description
+                TestData.News.E2E.DATE_TEST_DESCRIPTION_PREFIX + year
         );
     }
 
-    // Создание новости для теста дат (базовый метод)
-    public String createNewsForDateTest() {
-        String title = TestData.News.Common.DATE_TEST_TITLE + System.currentTimeMillis();
-        return createTestNews(
-                title,
-                TestData.News.CATEGORY_ANNOUNCEMENT,
-                TestData.News.E2E.DEFAULT_DATE,
-                TestData.News.DEFAULT_TIME,
-                TestData.News.Common.DATE_TEST_DESCRIPTION
-        );
+    @Step("Удаление новости по заголовку")
+    public void deleteCreatedNewsByExactTitle(String title) {
+        scrollToTop();
+        WaitUtils.waitForMillis(1000);
+
+        boolean found = false;
+        for (int i = 0; i < 3; i++) {
+            found = findNewsByTitleWithScroll(title);
+            if (found) break;
+            scrollToTop();
+            WaitUtils.waitForMillis(1000);
+        }
+
+        if (!found) {
+            throw new RuntimeException("News not found: " + title);
+        }
+
+        Matcher<View> cardMatcher = findCardWithTitle(title);
+        ViewInteraction expandButton = onView(allOf(
+                withId(EXPAND_NEWS_ICON_ID),
+                withContentDescription("Expand news card button"),
+                withParent(withParent(cardMatcher))
+        ));
+
+        WaitUtils.waitForElement(expandButton, LONG_DELAY);
+        expandButton.perform(click());
+        WaitUtils.waitForMillis(800);
+
+        ViewInteraction deleteButton = onView(allOf(
+                withId(DELETE_NEWS_ICON_ID),
+                withContentDescription("News delete button"),
+                withParent(withParent(cardMatcher))
+        ));
+
+        WaitUtils.waitForElement(deleteButton, LONG_DELAY);
+        deleteButton.perform(click());
+        WaitUtils.waitForMillis(500);
+        performDeleteConfirmation();
     }
 
-    // Проверка создания новости в списке
-    private boolean verifyNewsCreated(String title, long timeout) {
+    @Step("Поиск новости в списке")
+    public boolean findNewsByTitleWithScroll(String title) {
+        try {
+            if (WaitUtils.isElementDisplayedWithText(title, SHORT_DELAY)) {
+                return true;
+            }
+
+            for (int i = 0; i < 3; i++) {
+                onView(withId(NEWS_LIST_RECYCLER_ID)).perform(swipeUp());
+                WaitUtils.waitForMillis(500);
+
+                if (WaitUtils.isElementDisplayedWithText(title, SHORT_DELAY)) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    @Step("Проверка видимости новости")
+    public boolean isNewsDisplayed(String title) {
+        try {
+            return WaitUtils.isElementDisplayedWithText(title, SHORT_DELAY) || findNewsByTitleWithScroll(title);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    @Step("Проверка элементов управления новостями")
+    public void checkNewsElementsExist() {
+        checkControlPanelIsDisplayed();
+        ViewInteraction recyclerView = onView(allOf(withId(NEWS_LIST_RECYCLER_ID), isDisplayed()));
+        WaitUtils.waitForElement(recyclerView, LONG_DELAY);
+        recyclerView.perform(scrollToPosition(0));
+
+        Matcher<View> firstNewsCard = allOf(withId(NEWS_CARD_ID),
+                childAtPosition(withId(NEWS_LIST_RECYCLER_ID), 0),
+                isDisplayed());
+
+        onView(allOf(withId(NEWS_TITLE_VIEW_ID), withParent(withParent(firstNewsCard))))
+                .check(matches(isDisplayed()));
+        onView(allOf(withId(DELETE_NEWS_ICON_ID), withParent(withParent(firstNewsCard))))
+                .check(matches(isDisplayed()));
+        onView(allOf(withId(EDIT_NEWS_ICON_ID), withParent(withParent(firstNewsCard))))
+                .check(matches(isDisplayed()));
+    }
+
+    @Step("Проверка отображения элементов управления новостями (возвращает 'boolean')")
+    public boolean areNewsElementsDisplayed() {
+        try {
+            checkNewsElementsExist();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    @Step("Управление отображением описания")
+    public void expandAndCollapseNewsDescription() {
+        checkControlPanelIsDisplayed();
+        ViewInteraction recyclerView = onView(allOf(withId(NEWS_LIST_RECYCLER_ID), isDisplayed()));
+        WaitUtils.waitForElement(recyclerView, LONG_DELAY);
+        recyclerView.perform(actionOnItemAtPosition(0, click()));
+        WaitUtils.waitForMillis(SHORT_DELAY);
+        recyclerView.perform(actionOnItemAtPosition(0, click()));
+        WaitUtils.waitForMillis(SHORT_DELAY);
+    }
+
+    @Step("Проверка функциональности описания новости (возвращает 'boolean')")
+    public boolean isNewsDescriptionFunctional() {
+        try {
+            expandAndCollapseNewsDescription();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    @Step("Получение года из даты создания")
+    public int getCreationDateYear(String newsTitle) {
+        checkControlPanelIsDisplayed();
+        boolean found = findNewsByTitleWithScroll(newsTitle);
+        if (!found) {
+            throw new RuntimeException("News not found: " + newsTitle);
+        }
+
+        Matcher<View> cardMatcher = findCardWithTitle(newsTitle);
+        ViewInteraction creationDateView = onView(allOf(
+                withId(CREATION_DATE_ID),
+                withParent(withParent(cardMatcher)),
+                isDisplayed()
+        ));
+
+        WaitUtils.waitForElement(creationDateView, LONG_DELAY);
+        String dateText = getTextFromView(creationDateView);
+        return extractYearFromDate(dateText);
+    }
+
+    @Step("Проверка отображения даты публикации (возвращает 'boolean')")
+    public boolean isPublicationDateDisplayed(String title, String expectedDate) {
+        try {
+            if (!findNewsByTitleWithScroll(title)) {
+                return false;
+            }
+
+            Matcher<View> cardMatcher = findCardWithTitle(title);
+            ViewInteraction publicationDateView = onView(allOf(
+                    withId(R.id.news_item_publication_date_text_view),
+                    withParent(withParent(cardMatcher)),
+                    isDisplayed()
+            ));
+
+            WaitUtils.waitForElement(publicationDateView, SHORT_DELAY);
+            String actualDateText = getTextFromView(publicationDateView);
+
+            if (actualDateText == null || actualDateText.isEmpty()) {
+                return false;
+            }
+
+            String extractedDate = extractDateFromText(actualDateText);
+            return extractedDate.equals(expectedDate);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    @Step("Прокрутка к началу списка")
+    public void scrollToTop() {
+        try {
+            onView(withId(NEWS_LIST_RECYCLER_ID)).perform(scrollToPosition(0));
+            WaitUtils.waitForElementWithId(NEWS_TITLE_VIEW_ID, MEDIUM_DELAY);
+        } catch (Exception e) {
+        }
+    }
+
+    @Step("Создание новостей для проверки сортировки")
+    public Map<String, String> createTestNewsForSortingTest() {
+        Map<String, String> createdNews = new HashMap<>();
+
+        String todayTitle = TestData.News.Sorting.generateUniqueTitle(TestData.News.Sorting.TODAY_NEWS_PREFIX);
+        String todayDate = TestData.News.Sorting.getTodayDate();
+        createTestNews(todayTitle, TestData.News.CATEGORY_ANNOUNCEMENT, todayDate,
+                TestData.News.Sorting.TODAY_TIME, "Тест сортировки - сегодня");
+        createdNews.put("todayTitle", todayTitle);
+        createdNews.put("todayDate", todayDate);
+
+        String tomorrowTitle = TestData.News.Sorting.generateUniqueTitle(TestData.News.Sorting.TOMORROW_NEWS_PREFIX);
+        String tomorrowDate = TestData.News.Sorting.getTomorrowDate();
+        createTestNews(tomorrowTitle, TestData.News.CATEGORY_ANNOUNCEMENT, tomorrowDate,
+                TestData.News.Sorting.TOMORROW_TIME, "Тест сортировки - завтра");
+        createdNews.put("tomorrowTitle", tomorrowTitle);
+        createdNews.put("tomorrowDate", tomorrowDate);
+
+        return createdNews;
+    }
+
+    @Step("Проверка видимости новости без прокрутки")
+    public boolean isNewsVisibleWithoutScroll(String title) {
+        try {
+            onView(allOf(
+                    withId(R.id.news_item_title_text_view),
+                    withText(title),
+                    isDisplayed()
+            )).check(matches(isDisplayed()));
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    @Step("Проверка пустого списка новостей (возвращает 'boolean')")
+    public boolean isNewsListEmpty() {
+        try {
+            onView(withText("There is nothing here yet...")).check(matches(isDisplayed()));
+            return true;
+        } catch (Exception e) {
+            try {
+                onView(withId(NEWS_LIST_RECYCLER_ID)).check(matches(isDisplayed()));
+                return false;
+            } catch (Exception ex) {
+                return true;
+            }
+        }
+    }
+
+    @Step("Проверка наличия неактивных новостей (возвращает 'boolean')")
+    public boolean hasInactiveNews() {
+        try {
+            onView(withText("NOT ACTIVE")).check(matches(isDisplayed()));
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    @Step("Проверка наличия активных новостей (возвращает 'boolean')")
+    public boolean hasActiveNews() {
+        try {
+            onView(withText("ACTIVE")).check(matches(isDisplayed()));
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    @Step("Проверка многострочного описания новости")
+    public boolean isMultilineDescriptionDisplayed(String newsTitle, String expectedDescription) {
+        try {
+            boolean found = findNewsByTitleWithScroll(newsTitle);
+            if (!found) {
+                return false;
+            }
+
+            Matcher<View> cardMatcher = findCardWithTitle(newsTitle);
+            ViewInteraction expandButton = onView(allOf(
+                    withId(EXPAND_NEWS_ICON_ID),
+                    withContentDescription("Expand news card button"),
+                    withParent(withParent(cardMatcher))
+            ));
+
+            WaitUtils.waitForElement(expandButton, LONG_DELAY);
+            expandButton.perform(click());
+            WaitUtils.waitForMillis(800);
+
+            ViewInteraction descriptionView = onView(allOf(
+                    withId(R.id.news_item_description_text_view),
+                    withParent(withParent(cardMatcher))
+            ));
+
+            String actualDescription = getTextFromView(descriptionView);
+
+            if (actualDescription == null || actualDescription.isEmpty()) {
+                return false;
+            }
+
+            String normalizedExpected = expectedDescription.replace("\n", " ").trim();
+            String normalizedActual = actualDescription.replace("\n", " ").trim();
+
+            return normalizedActual.contains(normalizedExpected.substring(0, Math.min(20, normalizedExpected.length())));
+
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    @Step("Создание тестовой новости с выбором даты через календарь")
+    public String createTestNewsWithCalendar(String title, String category, int daysFromNow,
+                                             String time, String description) {
+        CreateEditNewsPage createPage = navigateToCreateNews();
+        WaitUtils.waitForElementWithId(R.id.news_item_title_text_input_edit_text, LONG_DELAY);
+
+        createPage.fillTitle(title);
+        WaitUtils.waitForMillis(SHORT_DELAY);
+        createPage.selectCategorySimple(category);
+        WaitUtils.waitForMillis(SHORT_DELAY);
+
+        if (daysFromNow == 0) {
+            createPage.selectCurrentDate();
+        } else if (daysFromNow > 0) {
+            createPage.selectFutureDate(daysFromNow);
+        } else {
+            createPage.selectPastDate(Math.abs(daysFromNow));
+        }
+
+        WaitUtils.waitForMillis(SHORT_DELAY);
+
+        createPage.selectTime(time);
+        WaitUtils.waitForMillis(SHORT_DELAY);
+
+        createPage.fillDescription(description);
+        WaitUtils.waitForMillis(SHORT_DELAY);
+
+        createPage.clickSaveButton();
+        checkControlPanelIsDisplayed();
+
+        boolean created = verifyNewsCreated(title);
+        assertTrue("Failed to create news with title: " + title, created);
+        return title;
+    }
+
+    // Вспомогательные методы
+
+    private boolean verifyNewsCreatedWithTimeout(String title, long timeout) {
         long endTime = System.currentTimeMillis() + timeout;
         while (System.currentTimeMillis() < endTime) {
-            if (findNewsByTitleWithScroll(title)) {
+            if (isNewsDisplayed(title)) {
                 return true;
             }
             WaitUtils.waitForMillis(MEDIUM_DELAY);
@@ -218,204 +523,42 @@ public class ControlPanelPage {
         return false;
     }
 
-    // Удаление созданной новости по точному заголовку
-    public void deleteCreatedNewsByExactTitle(String title) {
-        try {
-            ViewInteraction expandButton = onView(allOf(
-                    withId(R.id.view_news_item_image_view),
-                    withContentDescription("Expand news card button"),
-                    withParent(withParent(findCardWithTitle(title)))
-            ));
-
-            WaitUtils.waitForElement(expandButton, LONG_DELAY);
-            expandButton.perform(click());
-            delay();
-
-            ViewInteraction deleteButton = onView(allOf(
-                    withId(R.id.delete_news_item_image_view),
-                    withContentDescription("News delete button"),
-                    withParent(withParent(findCardWithTitle(title)))
-            ));
-
-            WaitUtils.waitForElement(deleteButton, LONG_DELAY);
-            deleteButton.perform(click());
-
-            performDeleteConfirmation();
-
-        } catch (Exception e) {
-            deleteNewsByTitleAlternative(title);
-        }
-    }
-
-    // Альтернативный метод удаления новости по заголовку
-    private void deleteNewsByTitleAlternative(String title) {
-        try {
-            ViewInteraction newsTitle = onView(getTitleMatcher(title));
-            WaitUtils.waitForElement(newsTitle, LONG_DELAY);
-
-            newsTitle.perform(click());
-            delay();
-
-            ViewInteraction deleteButton = onView(allOf(
-                    withId(R.id.delete_news_item_image_view),
-                    withContentDescription("News delete button"),
-                    isDisplayed()
-            ));
-
-            WaitUtils.waitForElement(deleteButton, LONG_DELAY);
-            deleteButton.perform(click());
-
-            performDeleteConfirmation();
-
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    // Подтверждение удаления
     private void performDeleteConfirmation() {
-        WaitUtils.waitForElementWithText("OK", LONG_DELAY);
-        onView(withText("OK")).perform(click());
-        WaitUtils.waitForMillis(LONG_DELAY);
-    }
-
-    // Поиск новости по заголовку с прокруткой
-    public boolean findNewsByTitleWithScroll(String title) {
-        WaitUtils.waitForMillis(MEDIUM_DELAY);
-
         try {
-            checkTitleDisplayed(title);
-            return true;
+            WaitUtils.waitForElementWithText("OK", LONG_DELAY);
+            onView(withText("OK")).perform(click());
         } catch (Exception e) {
             try {
-                onView(withId(R.id.news_list_recycler_view))
-                        .perform(swipeUp());
-                WaitUtils.waitForMillis(MEDIUM_DELAY);
-                checkTitleDisplayed(title);
-                return true;
-            } catch (Exception ex) {
-                return false;
+                onView(withText("ОК")).perform(click());
+            } catch (Exception e2) {
+                onView(withId(android.R.id.button1)).perform(click());
             }
         }
+        WaitUtils.waitForElementWithId(NEWS_LIST_RECYCLER_ID, MEDIUM_DELAY);
     }
 
-    // Проверка отображения новости с указанным заголовком
-    public boolean isNewsDisplayed(String title) {
-        try {
-            checkTitleDisplayed(title);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+    private String getTextFromView(ViewInteraction viewInteraction) {
+        String[] textHolder = new String[1];
+        viewInteraction.perform(new GetTextAction(textHolder));
+        return textHolder[0] != null ? textHolder[0] : "";
     }
 
-    // Проверка элементов у новостей в Control Panel
-    public void checkNewsElementsExist() {
-        checkControlPanelIsDisplayed();
-
-        ViewInteraction recyclerView = onView(withId(R.id.news_list_recycler_view));
-        WaitUtils.waitForElement(recyclerView, LONG_DELAY);
-        recyclerView.perform(scrollToPosition(0));
-
-        Matcher<View> firstNewsCard = allOf(withId(R.id.news_item_material_card_view),
-                childAtPosition(withId(R.id.news_list_recycler_view), 0),
-                isDisplayed());
-
-        checkElementInCard(firstNewsCard, withId(R.id.news_item_title_text_view));
-        checkElementInCard(firstNewsCard, withId(R.id.delete_news_item_image_view));
-        checkElementInCard(firstNewsCard, withId(R.id.edit_news_item_image_view));
+    private int extractYearFromDate(String dateText) {
+        java.util.regex.Matcher dateMatcher = DATE_PATTERN.matcher(dateText);
+        assertTrue("Date does not match the format dd.MM.yyyy: " + dateText, dateMatcher.find());
+        return Integer.parseInt(dateMatcher.group(3));
     }
 
-    // Разворачивание и сворачивание описания новости
-    public void expandAndCollapseNewsDescription() {
-        checkControlPanelIsDisplayed();
-
-        ViewInteraction recyclerView = onView(withId(R.id.news_list_recycler_view));
-        WaitUtils.waitForElement(recyclerView, LONG_DELAY);
-
-        recyclerView.perform(actionOnItemAtPosition(0, click()));
-        delay();
-
-        recyclerView.perform(actionOnItemAtPosition(0, click()));
-        delay();
-    }
-
-    // Проверка года в дате создания новости
-    public void verifyCreationDateYear(String newsTitle, int expectedYear) {
-        checkControlPanelIsDisplayed();
-
-        boolean found = findNewsByTitleWithScroll(newsTitle);
-        Assert.assertTrue(found);
-
-        try {
-            Matcher<View> cardMatcher = findCardWithTitle(newsTitle);
-
-            ViewInteraction creationDateView = onView(allOf(
-                    withId(R.id.news_item_create_date_text_view),
-                    withParent(withParent(cardMatcher)),
-                    isDisplayed()
-            ));
-
-            WaitUtils.waitForElement(creationDateView, LONG_DELAY);
-
-            String dateText = getTextFromView(creationDateView);
-            Assert.assertNotNull(dateText);
-            Assert.assertFalse(dateText.isEmpty());
-
-            int actualYear = extractYearFromDate(dateText);
-            Assert.assertEquals(expectedYear, actualYear);
-
-        } catch (Exception e) {
-            verifyCreationDateYearAlternative(expectedYear);
-        }
-    }
-
-    // Проверка отображения даты публикации
-    public void verifyPublicationDateDisplay(String title) {
-        findNewsByTitleWithScroll(title);
-    }
-
-    // Клик по кнопке редактирования новостей
-    private void clickEditNewsButton() {
-        try {
-            ViewInteraction editButton = onView(
-                    allOf(withId(R.id.edit_news_material_button),
-                            childAtPosition(
-                                    childAtPosition(
-                                            withId(R.id.container_list_news_include),
-                                            0),
-                                    3),
-                            isDisplayed()));
-            WaitUtils.waitForElement(editButton, LONG_DELAY);
-            editButton.perform(click());
-        } catch (Exception e) {
-            ViewInteraction altEditButton = onView(
-                    allOf(withId(R.id.edit_news_material_button), isDisplayed()));
-            WaitUtils.waitForElement(altEditButton, LONG_DELAY);
-            altEditButton.perform(click());
-        }
-    }
-
-    // Проверка элемента внутри карточки новости
-    private void checkElementInCard(Matcher<View> cardMatcher, Matcher<View> elementMatcher) {
-        try {
-            onView(allOf(elementMatcher, withParent(withParent(cardMatcher))))
-                    .check(matches(isDisplayed()));
-        } catch (Exception e) {
-            onView(elementMatcher).check(matches(isDisplayed()));
-        }
-    }
-
-    // Поиск карточки новости по заголовку
     private Matcher<View> findCardWithTitle(String title) {
         return new TypeSafeMatcher<View>() {
             @Override
             public void describeTo(Description description) {
+                description.appendText("News card with title: " + title);
             }
 
             @Override
             protected boolean matchesSafely(View view) {
-                if (view.getId() == R.id.news_item_material_card_view) {
+                if (view.getId() == NEWS_CARD_ID) {
                     return findTitleInHierarchy(view, title);
                 }
                 return false;
@@ -426,12 +569,10 @@ public class ControlPanelPage {
                     ViewGroup group = (ViewGroup) view;
                     for (int i = 0; i < group.getChildCount(); i++) {
                         View child = group.getChildAt(i);
-                        if (child.getId() == R.id.news_item_title_text_view &&
+                        if (child.getId() == NEWS_TITLE_VIEW_ID &&
                                 child instanceof android.widget.TextView) {
                             String text = ((android.widget.TextView) child).getText().toString();
-                            if (text.equals(title)) {
-                                return true;
-                            }
+                            return text.equals(title);
                         }
                         if (findTitleInHierarchy(child, title)) {
                             return true;
@@ -443,74 +584,16 @@ public class ControlPanelPage {
         };
     }
 
-    // Альтернативная проверка года в дате создания
-    private void verifyCreationDateYearAlternative(int expectedYear) {
-        try {
-            ViewInteraction anyCreationDate = onView(
-                    allOf(withId(R.id.news_item_create_date_text_view), isDisplayed())
-            );
-
-            String dateText = getTextFromView(anyCreationDate);
-            if (dateText != null && !dateText.isEmpty()) {
-                int actualYear = extractYearFromDate(dateText);
-                Assert.assertEquals(expectedYear, actualYear);
-            } else {
-                Assert.fail();
-            }
-
-        } catch (Exception e2) {
-            throw new RuntimeException(e2);
+    private String extractDateFromText(String dateText) {
+        java.util.regex.Matcher matcher = DATE_PATTERN.matcher(dateText);
+        if (matcher.find()) {
+            return matcher.group();
         }
+        return dateText;
     }
 
-    // Метод для очистки экрана редактирования
-    public void cleanupEditingScreen() {
-        try {
-            if (WaitUtils.isElementDisplayedWithId(R.id.cancel_button, MEDIUM_DELAY)) {
-                onView(withId(R.id.cancel_button)).perform(click());
-                WaitUtils.waitForMillis(MEDIUM_DELAY);
-                if (WaitUtils.isElementDisplayedWithText("OK", MEDIUM_DELAY)) {
-                    onView(withText("OK")).perform(click());
-                }
-            }
-        } catch (Exception e) {
-        }
-    }
+    // Внутренние классы
 
-    // Выполнение короткой задержки
-    private void delay() {
-        WaitUtils.waitForMillis(SHORT_DELAY);
-    }
-
-    // Создание Matcher для поиска заголовка новости по тексту
-    private Matcher<View> getTitleMatcher(String title) {
-        return allOf(
-                withId(R.id.news_item_title_text_view),
-                withText(title),
-                isDisplayed()
-        );
-    }
-
-    // Проверка отображения заголовка новости
-    private void checkTitleDisplayed(String title) {
-        onView(getTitleMatcher(title)).check(matches(isDisplayed()));
-    }
-
-    // Получение текста из ViewInteraction с использованием кастомного GetTextAction
-    private String getTextFromView(ViewInteraction viewInteraction) {
-        String[] textHolder = new String[1];
-        viewInteraction.perform(new GetTextAction(textHolder));
-        return textHolder[0];
-    }
-
-    // Извлечение года из строки даты формата dd.MM.yyyy
-    private int extractYearFromDate(String dateText) {
-        java.util.regex.Matcher dateMatcher = DATE_PATTERN.matcher(dateText);
-        Assert.assertTrue(dateMatcher.find());
-        return Integer.parseInt(dateMatcher.group(3));
-    }
-
-    // Действие для клика по кнопке редактирования внутри карточки новости
     private static class ClickEditButtonAction implements ViewAction {
         @Override
         public Matcher<View> getConstraints() {
@@ -519,19 +602,19 @@ public class ControlPanelPage {
 
         @Override
         public String getDescription() {
-            return "";
+            return "Click on edit button inside news card";
         }
 
         @Override
         public void perform(UiController uiController, View view) {
-            View editButton = findViewWithId(view, R.id.edit_news_item_image_view);
+            View editButton = findViewWithId(view, EDIT_NEWS_ICON_ID);
             if (editButton != null && editButton.isShown()) {
                 editButton.performClick();
             } else {
                 view.performClick();
                 uiController.loopMainThreadUntilIdle();
 
-                editButton = findViewWithId(view, R.id.edit_news_item_image_view);
+                editButton = findViewWithId(view, EDIT_NEWS_ICON_ID);
                 if (editButton != null && editButton.isShown()) {
                     editButton.performClick();
                 }
@@ -558,7 +641,6 @@ public class ControlPanelPage {
         }
     }
 
-    // Действие для получения текста из TextView
     private static class GetTextAction implements ViewAction {
         private final String[] textHolder;
 
@@ -573,7 +655,7 @@ public class ControlPanelPage {
 
         @Override
         public String getDescription() {
-            return "";
+            return "Getting text from TextView";
         }
 
         @Override
@@ -584,12 +666,13 @@ public class ControlPanelPage {
         }
     }
 
-    // Матчер для поиска дочернего элемента по позиции
-    private static Matcher<View> childAtPosition(
-            final Matcher<View> parentMatcher, final int position) {
+    // Matcher утилиты
+
+    private static Matcher<View> childAtPosition(final Matcher<View> parentMatcher, final int position) {
         return new TypeSafeMatcher<View>() {
             @Override
             public void describeTo(Description description) {
+                description.appendText("Child element at position " + position);
                 parentMatcher.describeTo(description);
             }
 

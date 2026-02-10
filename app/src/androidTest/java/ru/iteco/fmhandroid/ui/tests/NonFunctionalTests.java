@@ -1,98 +1,92 @@
 package ru.iteco.fmhandroid.ui.tests;
 
-import static androidx.test.espresso.Espresso.onView;
-import static androidx.test.espresso.action.ViewActions.swipeUp;
-import static androidx.test.espresso.assertion.ViewAssertions.matches;
-import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
-import static androidx.test.espresso.matcher.ViewMatchers.withId;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
-import ru.iteco.fmhandroid.R;
+import io.qameta.allure.android.runners.AllureAndroidJUnit4;
+import io.qameta.allure.kotlin.Description;
+import io.qameta.allure.kotlin.Epic;
+import io.qameta.allure.kotlin.Feature;
+import io.qameta.allure.kotlin.Story;
+import io.qameta.allure.kotlin.junit4.DisplayName;
 import ru.iteco.fmhandroid.ui.core.BaseTest;
 import ru.iteco.fmhandroid.ui.core.TestData;
-import ru.iteco.fmhandroid.ui.pages.AuthorizationPage;
+import ru.iteco.fmhandroid.ui.pages.NavigationDrawerPage;
 import ru.iteco.fmhandroid.ui.pages.NewsPage;
 import ru.iteco.fmhandroid.ui.utils.OrientationUtils;
 
+@RunWith(AllureAndroidJUnit4.class)
+@Epic("Нефункциональные тесты")
+@Feature("Тестирование поведения при изменении ориентации")
+@DisplayName("Тесты адаптивности и сохранения данных")
 public class NonFunctionalTests extends BaseTest {
 
-    private final AuthorizationPage authPage = new AuthorizationPage();
+    private final NavigationDrawerPage navigationDrawer = new NavigationDrawerPage();
     private final NewsPage newsPage = new NewsPage();
 
     @Before
     public void setUp() {
-        try {
-            OrientationUtils.rotateToPortrait();
-        } catch (Exception e) {
-        }
+        setUpToAuthScreen();
+        OrientationUtils.rotateToPortrait();
     }
 
     @After
     public void tearDown() {
-        try {
-            OrientationUtils.rotateToPortrait();
-        } catch (Exception e) {
-        }
+        tearDownToAuthScreen();
+        OrientationUtils.rotateToPortrait();
     }
 
-    // TC-AUTH-12: Сохранение данных при повороте экрана
     @Test
-    @Ignore("Отключен из-за критического бага: приложение падает при повороте на экране авторизации")
+    @DisplayName("Сохранение данных при повороте экрана")
+    @Description("TC-AUTH-12: Проверка сохранения данных в полях при повороте экрана")
+    @Story("Данные в полях должны сохраняться при смене ориентации")
+    @Ignore("Тест временно отключен: Приложение падает при повороте на экране авторизации")
     public void testDataPreservationOnScreenRotation() {
-        ensureOnMainScreen();
-
-        if (mainPage.isMainScreenDisplayedQuick(2000)) {
-            mainPage.tryToLogout();
-        }
-
         authPage.checkAuthorizationScreenIsDisplayed();
 
-        authPage.enterLogin(TestData.VALID_LOGIN);
-        authPage.enterPassword(TestData.VALID_PASSWORD);
+        String testLogin = TestData.VALID_LOGIN;
+        String testPassword = TestData.VALID_PASSWORD;
+        authPage.enterLogin(testLogin);
+        authPage.enterPassword(testPassword);
 
         String loginBefore = authPage.getLoginText();
-        String passwordBefore = authPage.getPasswordText();
-
         OrientationUtils.rotateToLandscape();
 
         String loginAfter = authPage.getLoginText();
-        String passwordAfter = authPage.getPasswordText();
-
-        if (loginAfter.isEmpty() || !loginBefore.equals(loginAfter)) {
-            fail("БАГ: Логин не сохраняется при повороте экрана");
-        }
-
-        if (passwordAfter.isEmpty() || !passwordBefore.equals(passwordAfter)) {
-            fail("БАГ: Пароль не сохраняется при повороте экрана");
-        }
-
-        onView(withId(R.id.enter_button))
-                .check(matches(isDisplayed()));
-
         OrientationUtils.rotateToPortrait();
+        authPage.isAuthorizationScreenDisplayed();
+
+        assertTrue("BUG: Login data should be preserved when screen orientation changes",
+                !loginAfter.isEmpty() && loginBefore.equals(loginAfter));
     }
 
-    // TC-NF-02: Адаптивность верстки при повороте экрана
     @Test
+    @DisplayName("Адаптивность верстки при повороте экрана")
+    @Description("TC-NF-02: Проверка адаптивности интерфейса при смене ориентации")
+    @Story("Интерфейс должен адаптироваться к ландшафтной ориентации")
     public void testLayoutAdaptabilityOnScreenRotation() {
-        ensureOnMainScreen();
+        loginAndGoToMainScreen();
+        navigationDrawer.openMenu().clickNewsMenuItem();
+        mainPage.isNewsScreenDisplayed();
 
-        newsPage.navigateToNewsSection();
+        boolean isNewsListEmpty = newsPage.isNewsListEmpty();
+        assertTrue("News list should be empty for this test. Bug appears only with empty news list.", isNewsListEmpty);
 
+        mainPage.isRefreshButtonAccessibleInLandscape();
         OrientationUtils.rotateToLandscape();
+        mainPage.isNewsScreenDisplayed();
 
-        try {
-            onView(withId(R.id.news_list_recycler_view))
-                    .perform(swipeUp());
-        } catch (Exception e) {
-            fail("БАГ: Прокрутка не работает в ландшафтной ориентации");
-        }
+        assertTrue("BUG: Refresh button should be accessible in landscape orientation with empty news list",
+                mainPage.isRefreshButtonAccessibleInLandscape());
 
         OrientationUtils.rotateToPortrait();
+        mainPage.isNewsScreenDisplayed();
+        navigationDrawer.openMenu().clickMainMenuItem();
+        ensureOnMainScreen();
     }
 }

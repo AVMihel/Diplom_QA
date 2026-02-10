@@ -2,6 +2,7 @@ package ru.iteco.fmhandroid.ui.pages;
 
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
+import static androidx.test.espresso.action.ViewActions.swipeUp;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
@@ -10,11 +11,15 @@ import static org.hamcrest.Matchers.allOf;
 
 import androidx.test.espresso.ViewInteraction;
 
+import io.qameta.allure.kotlin.Step;
+import io.qameta.allure.kotlin.junit4.DisplayName;
 import ru.iteco.fmhandroid.R;
 import ru.iteco.fmhandroid.ui.utils.WaitUtils;
 
+@DisplayName("Главная страница приложения")
 public class MainPage {
 
+    private static final int SHORT_DELAY = 200;
     private static final int MEDIUM_DELAY = 500;
     private static final int LONG_DELAY = 1500;
     private static final int POLLING_DELAY = 50;
@@ -24,7 +29,7 @@ public class MainPage {
     private static final String NEWS_TEXT = "News";
     private static final String LOG_OUT_TEXT = "Log out";
     private static final String VERSION_TEXT = "Version:";
-    private static final String LOVE_IS_ALL_TEXT = "Love is all";
+    private static final String REFRESH_TEXT = "REFRESH";
 
     // ID элементов
     private static final int LOGOUT_BUTTON_ID = R.id.authorization_image_button;
@@ -32,61 +37,95 @@ public class MainPage {
     private static final int NEWS_BLOCK_ID = R.id.container_list_news_include_on_fragment_main;
     private static final int QUOTES_BUTTON_ID = R.id.our_mission_image_button;
     private static final int ABOUT_VERSION_TITLE_ID = R.id.about_version_title_text_view;
-    private static final int OUR_MISSION_TITLE_ID = R.id.our_mission_title_text_view;
+    private static final int NEWS_REFRESH_BUTTON_ID = R.id.news_retry_material_button;
+    private static final int ALL_NEWS_CARDS_BLOCK_ID = R.id.all_news_cards_block_constraint_layout;
 
-    // Быстрая проверка отображения главного экрана
+    @Step("Быстрая проверка отображения главного экрана")
     public boolean isMainScreenDisplayedQuick(long timeout) {
         return isElementDisplayedQuickly(getAllNewsButtonOnMain(), timeout);
     }
 
-    // Проверка отображения главного экрана
-    public MainPage checkMainScreenIsDisplayed() {
-        WaitUtils.waitForElement(getAllNewsButtonOnMain(), LONG_DELAY);
-        return this;
+    @Step("Проверка отображения главного экрана")
+    public boolean isMainScreenDisplayed() {
+        return isMainScreenDisplayedQuick(LONG_DELAY);
     }
 
-    // Проверка отображения экрана новостей
-    public MainPage checkNewsScreenIsDisplayed() {
-        WaitUtils.waitForElementWithText(NEWS_TEXT, LONG_DELAY);
-        return this;
+    @Step("Проверка отображения экрана новостей")
+    public boolean isNewsScreenDisplayed() {
+        return isElementWithTextDisplayedQuickly(NEWS_TEXT, LONG_DELAY);
     }
 
-    // Проверка отображения экрана "О приложении"
-    public MainPage checkAboutScreenIsDisplayed() {
-        WaitUtils.waitForElementWithId(ABOUT_VERSION_TITLE_ID, LONG_DELAY);
-        onView(withId(ABOUT_VERSION_TITLE_ID)).check(matches(withText(VERSION_TEXT)));
-        return this;
+    @Step("Проверка отображения экрана 'О приложении'")
+    public boolean isAboutScreenDisplayed() {
+        try {
+            WaitUtils.waitForElementWithId(ABOUT_VERSION_TITLE_ID, LONG_DELAY);
+            onView(withId(ABOUT_VERSION_TITLE_ID)).check(matches(withText(VERSION_TEXT)));
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
-    // Проверка отображения экрана цитат
-    public MainPage checkQuotesScreenIsDisplayed() {
-        WaitUtils.waitForElementWithId(OUR_MISSION_TITLE_ID, LONG_DELAY);
-        onView(withId(OUR_MISSION_TITLE_ID)).check(matches(withText(LOVE_IS_ALL_TEXT)));
-        return this;
+    @Step("Проверка отображения блока новостей на главном экране")
+    public boolean checkNewsBlockOnMainIsDisplayed() {
+        return isElementDisplayedQuickly(getNewsBlock(), LONG_DELAY);
     }
 
-    // Проверка отображения блока новостей на главном экране
-    public MainPage checkNewsBlockOnMainIsDisplayed() {
-        WaitUtils.waitForElement(getNewsBlock(), LONG_DELAY);
-        return this;
+    @Step("Проверка, что кнопка Refresh доступна в альбомной ориентации при пустом списке")
+    public boolean isRefreshButtonAccessibleInLandscape() {
+        try {
+            ViewInteraction refreshButton = onView(
+                    allOf(
+                            withId(NEWS_REFRESH_BUTTON_ID),
+                            withText(REFRESH_TEXT),
+                            isDisplayed()
+                    )
+            );
+
+            refreshButton.check(matches(isDisplayed()));
+            return true;
+        } catch (Exception e) {
+            try {
+                ViewInteraction newsContainer = onView(
+                        allOf(
+                                withId(ALL_NEWS_CARDS_BLOCK_ID),
+                                isDisplayed()
+                        )
+                );
+
+                newsContainer.perform(swipeUp());
+                WaitUtils.waitForMillis(SHORT_DELAY);
+
+                ViewInteraction refreshButtonAfterScroll = onView(
+                        allOf(
+                                withId(NEWS_REFRESH_BUTTON_ID),
+                                withText(REFRESH_TEXT),
+                                isDisplayed()
+                        )
+                );
+                refreshButtonAfterScroll.check(matches(isDisplayed()));
+                return true;
+            } catch (Exception ex) {
+                return false;
+            }
+        }
     }
 
-    // Клик по кнопке цитат
-    public MainPage clickQuotesButton() {
-        WaitUtils.waitForElement(getQuotesButton(), LONG_DELAY);
+    @Step("Клик по кнопке 'Quotes'")
+    public void clickQuotesButton() {
+        waitForElement(getQuotesButton(), LONG_DELAY);
         getQuotesButton().perform(click());
-        return this;
     }
 
-    // Выход из приложения
+    @Step("Выход из приложения")
     public void logout() {
-        WaitUtils.waitForElement(getLogoutButton(), LONG_DELAY);
+        waitForElement(getLogoutButton(), LONG_DELAY);
         getLogoutButton().perform(click());
         WaitUtils.waitForElementWithText(LOG_OUT_TEXT, LONG_DELAY);
         onView(withText(LOG_OUT_TEXT)).perform(click());
     }
 
-    // Попытка выхода из приложения (безопасный метод)
+    @Step("Попытка выхода из приложения")
     public void tryToLogout() {
         try {
             if (isElementDisplayedQuickly(getLogoutButton(), LONG_DELAY)) {
@@ -97,11 +136,10 @@ public class MainPage {
                 }
             }
         } catch (Exception e) {
-            // Игнорируем ошибки при попытке выхода
         }
     }
 
-    // Быстрая проверка отображения элемента
+    @Step("Быстрая проверка отображения элемента")
     private boolean isElementDisplayedQuickly(ViewInteraction view, long timeout) {
         long endTime = System.currentTimeMillis() + timeout;
         while (System.currentTimeMillis() < endTime) {
@@ -115,7 +153,7 @@ public class MainPage {
         return false;
     }
 
-    // Быстрая проверка отображения элемента с текстом
+    @Step("Быстрая проверка отображения элемента с текстом")
     private boolean isElementWithTextDisplayedQuickly(String text, long timeout) {
         long endTime = System.currentTimeMillis() + timeout;
         while (System.currentTimeMillis() < endTime) {
@@ -144,5 +182,10 @@ public class MainPage {
 
     private ViewInteraction getQuotesButton() {
         return onView(allOf(withId(QUOTES_BUTTON_ID), isDisplayed()));
+    }
+
+    // Вспомогательные методы
+    private void waitForElement(ViewInteraction element, long timeout) {
+        WaitUtils.waitForElement(element, timeout);
     }
 }

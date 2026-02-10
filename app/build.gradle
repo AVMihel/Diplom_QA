@@ -15,7 +15,7 @@ android {
 
     defaultConfig {
         applicationId "ru.iteco.fmhandroid"
-        minSdkVersion 21
+        minSdkVersion 26
         targetSdkVersion 33
         versionCode 14
         versionName "1.0.0"
@@ -57,7 +57,6 @@ android {
 
     testOptions {
         animationsDisabled = true
-        reportDir = "$project.buildDir/reports/allure-results"
     }
 }
 
@@ -120,4 +119,9 @@ dependencies {
     androidTestImplementation 'androidx.test.uiautomator:uiautomator:2.2.0'
     kaptAndroidTest "com.google.dagger:hilt-compiler:$hilt_version"
     debugImplementation 'androidx.fragment:fragment-testing:1.4.1'
+
+    androidTestImplementation 'io.qameta.allure:allure-kotlin-android:2.4.0'
+    androidTestImplementation 'io.qameta.allure:allure-kotlin-commons:2.4.0'
+    androidTestImplementation 'io.qameta.allure:allure-kotlin-model:2.4.0'
+    androidTestImplementation 'io.qameta.allure:allure-kotlin-junit4:2.4.0'
 }

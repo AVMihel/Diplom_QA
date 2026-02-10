@@ -13,36 +13,154 @@ import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.CoreMatchers.endsWith;
 
+import android.os.IBinder;
 import android.view.View;
+import android.view.WindowManager;
 
+import androidx.test.espresso.Root;
 import androidx.test.espresso.UiController;
 import androidx.test.espresso.ViewAction;
 
+import org.hamcrest.Description;
 import org.hamcrest.Matcher;
+import org.hamcrest.TypeSafeMatcher;
 
+import io.qameta.allure.kotlin.Step;
+import io.qameta.allure.kotlin.junit4.DisplayName;
 import ru.iteco.fmhandroid.R;
 import ru.iteco.fmhandroid.ui.utils.WaitUtils;
 
+@DisplayName("Страница авторизации")
 public class AuthorizationPage {
 
-    private static final int MEDIUM_DELAY = 500;
+    private static final int SHORT_DELAY = 200;
     private static final int LONG_DELAY = 1500;
     private static final int POLLING_DELAY = 50;
-    private static final int RETRY_ATTEMPTS = 3;
-    private static final int RETRY_DELAY = 300;
 
-    // Текстовые константы
+    // Константы
     private static final String SIGN_IN_TEXT = "Sign in";
-    private static final String GET_LOGIN_TEXT_DESC = "Get text from login field";
-    private static final String GET_PASSWORD_TEXT_DESC = "Get text from password field";
+    private static final String ERROR_SOMETHING_WENT_WRONG = "Something went wrong. Try again later.";
+    private static final String ERROR_LOGIN_PASSWORD_EMPTY = "Login and password cannot be empty";
 
     // ID элементов
     private static final int LOGIN_INPUT_LAYOUT_ID = R.id.login_text_input_layout;
     private static final int PASSWORD_INPUT_LAYOUT_ID = R.id.password_text_input_layout;
     private static final int ENTER_BUTTON_ID = R.id.enter_button;
 
-    // Быстрая проверка отображения экрана авторизации
-    public boolean isAuthScreenDisplayedQuick(long timeout) {
+    @Step("Проверка отображения экрана авторизации (возвращает 'boolean')")
+    public boolean isAuthorizationScreenDisplayed() {
+        return isAuthScreenDisplayed(LONG_DELAY);    }
+
+
+    @Step("Проверка отображения экрана авторизации")
+    public AuthorizationPage checkAuthorizationScreenIsDisplayed() {
+        WaitUtils.waitForElementWithId(LOGIN_INPUT_LAYOUT_ID, LONG_DELAY);
+        return this;
+    }
+
+    @Step("Проверка отображения сообщения 'Something went wrong. Try again later.'")
+    public void checkSomethingWentWrongMessage() {
+        boolean messageFound = false;
+        try {
+            onView(withText(ERROR_SOMETHING_WENT_WRONG))
+                    .check(matches(isDisplayed()));
+            messageFound = true;
+        } catch (Exception e) {
+        }
+        if (!messageFound) {
+            try {
+                onView(withText(ERROR_SOMETHING_WENT_WRONG))
+                        .inRoot(isToast())
+                        .check(matches(isDisplayed()));
+                messageFound = true;
+            } catch (Exception ex) {
+            }
+        }
+        if (!messageFound) {
+            throw new AssertionError("Message not found: '" + ERROR_SOMETHING_WENT_WRONG + "'");
+        }
+    }
+
+    @Step("Проверка отображения сообщения 'Login and password cannot be empty'")
+    public void checkEmptyFieldsMessage() {
+        boolean messageFound = false;
+        try {
+            onView(withText(ERROR_LOGIN_PASSWORD_EMPTY))
+                    .check(matches(isDisplayed()));
+            messageFound = true;
+        } catch (Exception e) {
+        }
+        if (!messageFound) {
+            try {
+                onView(withText(ERROR_LOGIN_PASSWORD_EMPTY))
+                        .inRoot(isToast())
+                        .check(matches(isDisplayed()));
+                messageFound = true;
+            } catch (Exception ex) {
+            }
+        }
+        if (!messageFound) {
+            throw new AssertionError("Message not found: '" + ERROR_LOGIN_PASSWORD_EMPTY + "'");
+        }
+    }
+
+    @Step("Выполнение авторизации с логином: {login} и паролем: {password}")
+    public void login(String login, String password) {
+        checkAuthorizationScreenIsDisplayed();
+        enterLogin(login);
+        enterPassword(password);
+        clickSignInButton();
+    }
+
+    @Step("Ввод логина: {login}")
+    public AuthorizationPage enterLogin(String login) {
+        waitForElementWithId(LOGIN_INPUT_LAYOUT_ID, LONG_DELAY);
+        onView(getLoginField()).perform(replaceText(login), closeSoftKeyboard());
+        delay();
+        return this;
+    }
+
+    @Step("Ввод пароля: {password}")
+    public AuthorizationPage enterPassword(String password) {
+        waitForElementWithId(PASSWORD_INPUT_LAYOUT_ID, LONG_DELAY);
+        onView(getPasswordField()).perform(replaceText(password), closeSoftKeyboard());
+        delay();
+        return this;
+    }
+
+    @Step("Клик по кнопке 'Sign in'")
+    public AuthorizationPage clickSignInButton() {
+        waitForElementWithId(ENTER_BUTTON_ID, LONG_DELAY);
+        onView(allOf(withId(ENTER_BUTTON_ID), withText(SIGN_IN_TEXT), isDisplayed()))
+                .perform(click());
+        return this;
+    }
+
+    @Step("Проверка, что все поля пустые (возвращает 'boolean')")
+    public boolean areAllFieldsEmpty() {
+        try {
+            String loginText = getLoginText();
+            String passwordText = getPasswordText();
+            return loginText.isEmpty() && passwordText.isEmpty();
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    @Step("Получить текст из поля логина")
+    public String getLoginText() {
+        return getTextFieldText(LOGIN_INPUT_LAYOUT_ID);
+    }
+
+    @Step("Получить текст из поля пароля")
+    public String getPasswordText() {
+        return getTextFieldText(PASSWORD_INPUT_LAYOUT_ID);
+    }
+
+    // Вспомогательные методы
+
+    @Step("Проверка отображения экрана авторизации с таймаутом {timeout} мс")
+    private boolean isAuthScreenDisplayed(long timeout) {
         long endTime = System.currentTimeMillis() + timeout;
         while (System.currentTimeMillis() < endTime) {
             try {
@@ -55,78 +173,30 @@ public class AuthorizationPage {
         return false;
     }
 
-    // Проверка отображения экрана авторизации
-    public void checkAuthorizationScreenIsDisplayed() {
-        WaitUtils.waitForElementWithId(LOGIN_INPUT_LAYOUT_ID, LONG_DELAY);
+    private void delay() {
+        WaitUtils.waitForMillis(SHORT_DELAY);
     }
 
-    // Выполнение авторизации
-    public void login(String login, String password) {
-        checkAuthorizationScreenIsDisplayed();
-        enterLogin(login);
-        enterPassword(password);
-        clickSignInButton();
+    private void waitForElementWithId(int elementId, long timeout) {
+        WaitUtils.waitForElementWithId(elementId, timeout);
     }
 
-    // Ввод логина
-    public void enterLogin(String login) {
-        WaitUtils.waitForElementWithId(LOGIN_INPUT_LAYOUT_ID, LONG_DELAY);
-        onView(getLoginField()).perform(replaceText(login), closeSoftKeyboard());
-    }
-
-    // Ввод пароля
-    public void enterPassword(String password) {
-        WaitUtils.waitForElementWithId(PASSWORD_INPUT_LAYOUT_ID, LONG_DELAY);
-        onView(getPasswordField()).perform(replaceText(password), closeSoftKeyboard());
-    }
-
-    // Клик по кнопке "Sign in"
-    public void clickSignInButton() {
-        WaitUtils.waitForElementWithId(ENTER_BUTTON_ID, LONG_DELAY);
-        onView(allOf(withId(ENTER_BUTTON_ID), withText(SIGN_IN_TEXT), isDisplayed()))
-                .perform(click());
-    }
-
-    // Проверка неудачной авторизации (остаемся на экране авторизации)
-    public void checkLoginFailed() {
-        checkAuthorizationScreenIsDisplayed();
-    }
-
-    // Проверка отображения ошибки валидации
-    public void checkValidationErrorIsDisplayed() {
-        WaitUtils.waitForElementWithId(ENTER_BUTTON_ID, LONG_DELAY);
-        onView(allOf(withId(ENTER_BUTTON_ID), withText(SIGN_IN_TEXT), isDisplayed()))
-                .check(matches(isDisplayed()));
-    }
-
-    // Проверка, что все поля пустые (с retry логикой)
-    public void checkAllFieldsAreEmpty() {
-        checkAuthorizationScreenIsDisplayed();
-        WaitUtils.waitForMillis(MEDIUM_DELAY);
-
-        for (int attempt = 0; attempt < RETRY_ATTEMPTS; attempt++) {
-            try {
-                onView(getLoginField()).check(matches(withText("")));
-                onView(getPasswordField()).check(matches(withText("")));
-                return; // Успешно
-            } catch (Exception e) {
-                if (attempt == RETRY_ATTEMPTS - 1) throw e;
-                WaitUtils.waitForMillis(RETRY_DELAY);
-            }
+    @Step("Получение текста из текстового поля")
+    private String getTextFieldText(int layoutId) {
+        try {
+            final String[] text = new String[1];
+            onView(allOf(
+                    withClassName(endsWith("EditText")),
+                    isDescendantOfA(withId(layoutId))
+            )).perform(new GetTextAction(text));
+            return text[0] != null ? text[0] : "";
+        } catch (Exception e) {
+            return "";
         }
     }
 
-    // Получить текст из поля логина
-    public String getLoginText() {
-        return getTextFieldText(LOGIN_INPUT_LAYOUT_ID, GET_LOGIN_TEXT_DESC);
-    }
+    // Получение элементов
 
-    // Получить текст из поля пароля
-    public String getPasswordText() {
-        return getTextFieldText(PASSWORD_INPUT_LAYOUT_ID, GET_PASSWORD_TEXT_DESC);
-    }
-
-    // Получение Matcher для поля ввода логина (EditText внутри TextInputLayout)
     private Matcher<View> getLoginField() {
         return allOf(
                 withClassName(endsWith("EditText")),
@@ -134,7 +204,6 @@ public class AuthorizationPage {
         );
     }
 
-    // Получение Matcher для поля ввода пароля (EditText внутри TextInputLayout)
     private Matcher<View> getPasswordField() {
         return allOf(
                 withClassName(endsWith("EditText")),
@@ -142,39 +211,51 @@ public class AuthorizationPage {
         );
     }
 
-    // Получение текста из поля ввода по ID его контейнера (TextInputLayout)
-    private String getTextFieldText(int layoutId, String description) {
-        try {
-            final String[] text = new String[1];
-            onView(allOf(
-                    withClassName(endsWith("EditText")),
-                    isDescendantOfA(withId(layoutId))
-            )).perform(createGetTextAction(text, description));
-            return text[0] != null ? text[0] : "";
-        } catch (Exception e) {
-            return "";
-        }
-    }
-
-    // Создание кастомного ViewAction для извлечения текста из EditText
-    private ViewAction createGetTextAction(final String[] textHolder, final String description) {
-        return new ViewAction() {
+    // Matcher для проверки toast сообщений
+    private static Matcher<Root> isToast() {
+        return new TypeSafeMatcher<Root>() {
             @Override
-            public Matcher<View> getConstraints() {
-                return isDisplayed();
-            }
-
-            @Override
-            public String getDescription() {
-                return description;
-            }
-
-            @Override
-            public void perform(UiController uiController, View view) {
-                if (view instanceof android.widget.EditText) {
-                    textHolder[0] = ((android.widget.EditText) view).getText().toString();
+            protected boolean matchesSafely(Root root) {
+                int type = root.getWindowLayoutParams().get().type;
+                if (type == WindowManager.LayoutParams.TYPE_TOAST) {
+                    IBinder windowToken = root.getDecorView().getWindowToken();
+                    IBinder appToken = root.getDecorView().getApplicationWindowToken();
+                    return windowToken == appToken;
                 }
+                return false;
+            }
+
+            @Override
+            public void describeTo(Description description) {
+                description.appendText("is toast");
             }
         };
+    }
+
+    // Внутренний класс для получения текста
+
+    private static class GetTextAction implements ViewAction {
+        private final String[] textHolder;
+
+        GetTextAction(String[] textHolder) {
+            this.textHolder = textHolder;
+        }
+
+        @Override
+        public Matcher<View> getConstraints() {
+            return isDisplayed();
+        }
+
+        @Override
+        public String getDescription() {
+            return "Получение текста из EditText";
+        }
+
+        @Override
+        public void perform(UiController uiController, View view) {
+            if (view instanceof android.widget.EditText) {
+                textHolder[0] = ((android.widget.EditText) view).getText().toString();
+            }
+        }
     }
 }

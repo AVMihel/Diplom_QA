@@ -13,136 +13,201 @@ import static androidx.test.espresso.matcher.ViewMatchers.withText;
 
 import androidx.test.espresso.ViewInteraction;
 
+import io.qameta.allure.kotlin.Step;
+import io.qameta.allure.kotlin.junit4.DisplayName;
 import ru.iteco.fmhandroid.R;
+import ru.iteco.fmhandroid.ui.utils.DatePickerUtils;
 import ru.iteco.fmhandroid.ui.utils.WaitUtils;
 
+@DisplayName("Страница создания/редактирования новостей")
 public class CreateEditNewsPage {
 
+    private static final int SHORT_DELAY = 200;
     private static final int MEDIUM_DELAY = 500;
     private static final int LONG_DELAY = 1500;
 
-    // Проверяет экран редактирования
+    // ID элементов
+    private static final int TITLE_FIELD_ID = R.id.news_item_title_text_input_edit_text;
+    private static final int CATEGORY_FIELD_ID = R.id.news_item_category_text_auto_complete_text_view;
+    private static final int DESCRIPTION_FIELD_ID = R.id.news_item_description_text_input_edit_text;
+    private static final int SAVE_BUTTON_ID = R.id.save_button;
+    private static final int CANCEL_BUTTON_ID = R.id.cancel_button;
+    private static final int PUBLISH_DATE_FIELD_ID = R.id.news_item_publish_date_text_input_edit_text;
+    private static final int PUBLISH_TIME_FIELD_ID = R.id.news_item_publish_time_text_input_edit_text;
+
+    @Step("Проверка отображения экрана редактирования новости")
     public void checkEditScreenIsDisplayed() {
-        WaitUtils.waitForElementWithId(R.id.news_item_title_text_input_edit_text, LONG_DELAY);
+        waitForElementWithId(TITLE_FIELD_ID, LONG_DELAY);
         checkTitleFieldDisplayed();
     }
 
-    // Проверяет экран создания новости
+    @Step("Проверка отображения экрана редактирования (возвращает 'boolean')")
+    public boolean isEditScreenDisplayed() {
+        try {
+            checkEditScreenIsDisplayed();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    @Step("Проверка отображения экрана создания новости")
     public void checkCreateScreenIsDisplayed() {
-        boolean categoryFound = WaitUtils.isElementDisplayedWithId(R.id.news_item_category_text_auto_complete_text_view, 3000);
-        if (categoryFound) {
+        if (WaitUtils.isElementDisplayedWithId(CATEGORY_FIELD_ID, MEDIUM_DELAY)) {
             checkCategoryFieldDisplayed();
         } else {
-            WaitUtils.waitForElementWithId(R.id.news_item_title_text_input_edit_text, LONG_DELAY);
+            waitForElementWithId(TITLE_FIELD_ID, LONG_DELAY);
             checkTitleFieldDisplayed();
         }
     }
 
-    // Заполняет заголовок
+    @Step("Проверка отображения экрана создания (возвращает 'boolean')")
+    public boolean isCreateScreenDisplayed() {
+        try {
+            checkCreateScreenIsDisplayed();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    @Step("Заполнение заголовка новости: {title}")
     public CreateEditNewsPage fillTitle(String title) {
-        ViewInteraction titleField = onView(withId(R.id.news_item_title_text_input_edit_text));
-        WaitUtils.waitForElement(titleField, LONG_DELAY);
+        ViewInteraction titleField = onView(withId(TITLE_FIELD_ID));
+        waitForElement(titleField, LONG_DELAY);
         titleField.perform(replaceText(title), closeSoftKeyboard());
+        delay();
         return this;
     }
 
-    // Упрощенный метод выбора категории
+    @Step("Выбор категории новости: {category}")
     public CreateEditNewsPage selectCategorySimple(String category) {
         try {
-            onView(withId(R.id.news_item_category_text_auto_complete_text_view))
+            onView(withId(CATEGORY_FIELD_ID))
                     .perform(replaceText(category), closeSoftKeyboard());
         } catch (Exception e) {
             try {
-                onView(withId(R.id.news_item_category_text_auto_complete_text_view)).perform(click());
+                onView(withId(CATEGORY_FIELD_ID)).perform(click());
                 WaitUtils.waitForMillis(LONG_DELAY);
                 onView(withText(category)).perform(click());
             } catch (Exception e2) {
-                // Игнорируем ошибку выбора категории
             }
         }
+        delay();
         return this;
     }
 
-    // Заполняет описание
+    @Step("Заполнение описания новости")
     public CreateEditNewsPage fillDescription(String description) {
         try {
-            ViewInteraction descriptionField = onView(withId(R.id.news_item_description_text_input_edit_text));
-            WaitUtils.waitForElement(descriptionField, LONG_DELAY);
+            ViewInteraction descriptionField = onView(withId(DESCRIPTION_FIELD_ID));
+            waitForElement(descriptionField, LONG_DELAY);
             descriptionField.perform(replaceText(description), closeSoftKeyboard());
         } catch (Exception e) {
-            // Игнорируем ошибку заполнения описания
         }
+        delay();
         return this;
     }
 
-    // Нажимает кнопку SAVE
+    @Step("Нажатие кнопки SAVE для сохранения новости")
     public void clickSaveButton() {
-        ViewInteraction saveButton = onView(withId(R.id.save_button));
-        WaitUtils.waitForElement(saveButton, LONG_DELAY);
+        ViewInteraction saveButton = onView(withId(SAVE_BUTTON_ID));
+        waitForElement(saveButton, LONG_DELAY);
         saveButton.perform(click());
     }
 
-    // Отмена с подтверждением
+    @Step("Отмена редактирования с подтверждением")
     public void cancelWithConfirmation() {
         try {
-            onView(withId(R.id.cancel_button)).perform(scrollTo(), click());
+            onView(withId(CANCEL_BUTTON_ID)).perform(scrollTo(), click());
             confirmDialog("OK");
         } catch (Exception e) {
-            onView(withId(R.id.cancel_button)).perform(click());
+            onView(withId(CANCEL_BUTTON_ID)).perform(click());
         }
     }
 
-    // Проверяет наличие сообщения об ошибке
+    @Step("Проверка отображения сообщения об ошибке: {message}")
     public boolean isErrorMessageDisplayed(String message) {
         return WaitUtils.isElementDisplayedWithText(message, LONG_DELAY);
     }
 
-    // Проверяет, что поле заголовка отображается
+    @Step("Проверка отображения поля заголовка")
     public void checkTitleFieldDisplayed() {
-        onView(withId(R.id.news_item_title_text_input_edit_text)).check(matches(isDisplayed()));
+        onView(withId(TITLE_FIELD_ID)).check(matches(isDisplayed()));
     }
 
-    // Проверяет что поле категории отображается
+    @Step("Проверка отображения поля категории")
     public void checkCategoryFieldDisplayed() {
-        onView(withId(R.id.news_item_category_text_auto_complete_text_view)).check(matches(isDisplayed()));
+        onView(withId(CATEGORY_FIELD_ID)).check(matches(isDisplayed()));
     }
 
-    // Выбирает текущую дату
+    @Step("Проверка отображения поля категории (возвращает 'boolean')")
+    public boolean isCategoryFieldDisplayed() {
+        try {
+            checkCategoryFieldDisplayed();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    @Step("Выбор текущей даты публикации через календарь")
     public CreateEditNewsPage selectCurrentDate() {
-        return selectDateTimeField(R.id.news_item_publish_date_text_input_edit_text);
+        DatePickerUtils.selectCurrentDateViaCalendar();
+        return this;
     }
 
-    // Выбирает текущее время
+    @Step("Выбор текущего времени публикации через часы")
     public CreateEditNewsPage selectCurrentTime() {
-        return selectDateTimeField(R.id.news_item_publish_time_text_input_edit_text);
+        DatePickerUtils.selectCurrentTimeViaTimePicker();
+        return this;
     }
 
-    // Метод для проверки наличия ошибки валидации
+    @Step("Выбор будущей даты публикации через календарь (через {days} дней)")
+    public CreateEditNewsPage selectFutureDate(int days) {
+        DatePickerUtils.selectFutureDateViaCalendar(days);
+        return this;
+    }
+
+    @Step("Выбор прошедшей даты публикации через календарь (за {days} дней до сегодня)")
+    public CreateEditNewsPage selectPastDate(int days) {
+        DatePickerUtils.selectPastDateViaCalendar(days);
+        return this;
+    }
+
+    @Step("Выбор времени публикации через часы: {time}")
+    public CreateEditNewsPage selectTime(String time) {
+        DatePickerUtils.selectTimeViaTimePicker(time);
+        return this;
+    }
+
+    @Step("Проверка отображения ошибки валидации")
     public boolean isValidationErrorDisplayed() {
         return isErrorMessageDisplayed("Saving failed") ||
                 isErrorMessageDisplayed("Try again later");
     }
 
-    // Метод для проверки, что остались на экране создания/редактирования
+    @Step("Проверка, что остались на экране создания/редактирования")
     public boolean isStillOnEditScreen() {
-        return WaitUtils.isElementDisplayedWithId(
-                R.id.news_item_title_text_input_edit_text, MEDIUM_DELAY);
+        return WaitUtils.isElementDisplayedWithId(TITLE_FIELD_ID, MEDIUM_DELAY);
     }
 
-    // Выбор даты или времени через календарь/таймпикер для указанного поля
-    private CreateEditNewsPage selectDateTimeField(int fieldId) {
-        try {
-            onView(withId(fieldId)).perform(click());
-            confirmDialog("OK");
-        } catch (Exception e) {
-            // Игнорируем ошибку выбора даты/времени
-        }
-        return this;
-    }
-
-    // Подтверждение диалога (календаря/таймпикера) с ожиданием кнопки
+    @Step("Подтверждение диалога с кнопкой: {buttonText}")
     private void confirmDialog(String buttonText) {
         WaitUtils.waitForElementWithText(buttonText, LONG_DELAY);
         onView(withText(buttonText)).inRoot(isDialog()).perform(click());
+    }
+
+    // Вспомогательные методы
+    private void delay() {
+        WaitUtils.waitForMillis(SHORT_DELAY);
+    }
+
+    private void waitForElement(ViewInteraction element, long timeout) {
+        WaitUtils.waitForElement(element, timeout);
+    }
+
+    private void waitForElementWithId(int elementId, long timeout) {
+        WaitUtils.waitForElementWithId(elementId, timeout);
     }
 }
