@@ -13,13 +13,11 @@ import static androidx.test.espresso.matcher.ViewMatchers.withText;
 
 import androidx.test.espresso.ViewInteraction;
 
-import io.qameta.allure.kotlin.Step;
-import io.qameta.allure.kotlin.junit4.DisplayName;
+import io.qameta.allure.kotlin.Allure;
 import ru.iteco.fmhandroid.R;
 import ru.iteco.fmhandroid.ui.utils.DatePickerUtils;
 import ru.iteco.fmhandroid.ui.utils.WaitUtils;
 
-@DisplayName("Страница создания/редактирования новостей")
 public class CreateEditNewsPage {
 
     private static final int SHORT_DELAY = 200;
@@ -35,14 +33,14 @@ public class CreateEditNewsPage {
     private static final int PUBLISH_DATE_FIELD_ID = R.id.news_item_publish_date_text_input_edit_text;
     private static final int PUBLISH_TIME_FIELD_ID = R.id.news_item_publish_time_text_input_edit_text;
 
-    @Step("Проверка отображения экрана редактирования новости")
     public void checkEditScreenIsDisplayed() {
+        Allure.step("Проверка отображения экрана редактирования новости");
         waitForElementWithId(TITLE_FIELD_ID, LONG_DELAY);
         checkTitleFieldDisplayed();
     }
 
-    @Step("Проверка отображения экрана редактирования (возвращает 'boolean')")
     public boolean isEditScreenDisplayed() {
+        Allure.step("Проверка отображения экрана редактирования");
         try {
             checkEditScreenIsDisplayed();
             return true;
@@ -51,8 +49,8 @@ public class CreateEditNewsPage {
         }
     }
 
-    @Step("Проверка отображения экрана создания новости")
     public void checkCreateScreenIsDisplayed() {
+        Allure.step("Проверка отображения экрана создания новости");
         if (WaitUtils.isElementDisplayedWithId(CATEGORY_FIELD_ID, MEDIUM_DELAY)) {
             checkCategoryFieldDisplayed();
         } else {
@@ -61,8 +59,8 @@ public class CreateEditNewsPage {
         }
     }
 
-    @Step("Проверка отображения экрана создания (возвращает 'boolean')")
     public boolean isCreateScreenDisplayed() {
+        Allure.step("Проверка отображения экрана создания");
         try {
             checkCreateScreenIsDisplayed();
             return true;
@@ -71,8 +69,8 @@ public class CreateEditNewsPage {
         }
     }
 
-    @Step("Заполнение заголовка новости: {title}")
     public CreateEditNewsPage fillTitle(String title) {
+        Allure.step("Заполнение заголовка новости: " + title);
         ViewInteraction titleField = onView(withId(TITLE_FIELD_ID));
         waitForElement(titleField, LONG_DELAY);
         titleField.perform(replaceText(title), closeSoftKeyboard());
@@ -80,8 +78,8 @@ public class CreateEditNewsPage {
         return this;
     }
 
-    @Step("Выбор категории новости: {category}")
     public CreateEditNewsPage selectCategorySimple(String category) {
+        Allure.step("Выбор категории новости: " + category);
         try {
             onView(withId(CATEGORY_FIELD_ID))
                     .perform(replaceText(category), closeSoftKeyboard());
@@ -91,33 +89,35 @@ public class CreateEditNewsPage {
                 WaitUtils.waitForMillis(LONG_DELAY);
                 onView(withText(category)).perform(click());
             } catch (Exception e2) {
+                // Игнорируем исключение
             }
         }
         delay();
         return this;
     }
 
-    @Step("Заполнение описания новости")
     public CreateEditNewsPage fillDescription(String description) {
+        Allure.step("Заполнение описания новости");
         try {
             ViewInteraction descriptionField = onView(withId(DESCRIPTION_FIELD_ID));
             waitForElement(descriptionField, LONG_DELAY);
             descriptionField.perform(replaceText(description), closeSoftKeyboard());
         } catch (Exception e) {
+            // Игнорируем исключение
         }
         delay();
         return this;
     }
 
-    @Step("Нажатие кнопки SAVE для сохранения новости")
     public void clickSaveButton() {
+        Allure.step("Нажатие кнопки SAVE для сохранения новости");
         ViewInteraction saveButton = onView(withId(SAVE_BUTTON_ID));
         waitForElement(saveButton, LONG_DELAY);
         saveButton.perform(click());
     }
 
-    @Step("Отмена редактирования с подтверждением")
     public void cancelWithConfirmation() {
+        Allure.step("Отмена редактирования с подтверждением");
         try {
             onView(withId(CANCEL_BUTTON_ID)).perform(scrollTo(), click());
             confirmDialog("OK");
@@ -126,23 +126,23 @@ public class CreateEditNewsPage {
         }
     }
 
-    @Step("Проверка отображения сообщения об ошибке: {message}")
     public boolean isErrorMessageDisplayed(String message) {
+        Allure.step("Проверка отображения сообщения об ошибке: " + message);
         return WaitUtils.isElementDisplayedWithText(message, LONG_DELAY);
     }
 
-    @Step("Проверка отображения поля заголовка")
     public void checkTitleFieldDisplayed() {
+        Allure.step("Проверка отображения поля заголовка");
         onView(withId(TITLE_FIELD_ID)).check(matches(isDisplayed()));
     }
 
-    @Step("Проверка отображения поля категории")
     public void checkCategoryFieldDisplayed() {
+        Allure.step("Проверка отображения поля категории");
         onView(withId(CATEGORY_FIELD_ID)).check(matches(isDisplayed()));
     }
 
-    @Step("Проверка отображения поля категории (возвращает 'boolean')")
     public boolean isCategoryFieldDisplayed() {
+        Allure.step("Проверка отображения поля категории");
         try {
             checkCategoryFieldDisplayed();
             return true;
@@ -151,49 +151,49 @@ public class CreateEditNewsPage {
         }
     }
 
-    @Step("Выбор текущей даты публикации через календарь")
     public CreateEditNewsPage selectCurrentDate() {
+        Allure.step("Выбор текущей даты публикации через календарь");
         DatePickerUtils.selectCurrentDateViaCalendar();
         return this;
     }
 
-    @Step("Выбор текущего времени публикации через часы")
     public CreateEditNewsPage selectCurrentTime() {
+        Allure.step("Выбор текущего времени публикации через часы");
         DatePickerUtils.selectCurrentTimeViaTimePicker();
         return this;
     }
 
-    @Step("Выбор будущей даты публикации через календарь (через {days} дней)")
     public CreateEditNewsPage selectFutureDate(int days) {
+        Allure.step("Выбор будущей даты публикации через календарь (через " + days + " дней)");
         DatePickerUtils.selectFutureDateViaCalendar(days);
         return this;
     }
 
-    @Step("Выбор прошедшей даты публикации через календарь (за {days} дней до сегодня)")
     public CreateEditNewsPage selectPastDate(int days) {
+        Allure.step("Выбор прошедшей даты публикации через календарь (за " + days + " дней до сегодня)");
         DatePickerUtils.selectPastDateViaCalendar(days);
         return this;
     }
 
-    @Step("Выбор времени публикации через часы: {time}")
     public CreateEditNewsPage selectTime(String time) {
+        Allure.step("Выбор времени публикации через часы: " + time);
         DatePickerUtils.selectTimeViaTimePicker(time);
         return this;
     }
 
-    @Step("Проверка отображения ошибки валидации")
     public boolean isValidationErrorDisplayed() {
+        Allure.step("Проверка отображения ошибки валидации");
         return isErrorMessageDisplayed("Saving failed") ||
                 isErrorMessageDisplayed("Try again later");
     }
 
-    @Step("Проверка, что остались на экране создания/редактирования")
     public boolean isStillOnEditScreen() {
+        Allure.step("Проверка, что остались на экране создания/редактирования");
         return WaitUtils.isElementDisplayedWithId(TITLE_FIELD_ID, MEDIUM_DELAY);
     }
 
-    @Step("Подтверждение диалога с кнопкой: {buttonText}")
     private void confirmDialog(String buttonText) {
+        Allure.step("Подтверждение диалога с кнопкой: " + buttonText);
         WaitUtils.waitForElementWithText(buttonText, LONG_DELAY);
         onView(withText(buttonText)).inRoot(isDialog()).perform(click());
     }

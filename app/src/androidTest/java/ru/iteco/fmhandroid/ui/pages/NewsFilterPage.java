@@ -9,47 +9,45 @@ import static androidx.test.espresso.matcher.ViewMatchers.withText;
 
 import androidx.test.espresso.ViewInteraction;
 
-import io.qameta.allure.kotlin.Step;
-import io.qameta.allure.kotlin.junit4.DisplayName;
+import io.qameta.allure.kotlin.Allure;
 import ru.iteco.fmhandroid.R;
 import ru.iteco.fmhandroid.ui.utils.NewsFilterUtils;
 import ru.iteco.fmhandroid.ui.utils.WaitUtils;
 
-@DisplayName("Страница фильтрации новостей")
 public class NewsFilterPage {
 
     private static final int SHORT_DELAY = 200;
     private static final int MEDIUM_DELAY = 500;
     private static final int LONG_DELAY = 1500;
 
-    @Step("Выбрать будущую дату окончания через календарь (через {days} дней)")
     public void selectFutureEndDateViaCalendar(int days) {
+        Allure.step("Выбрать будущую дату окончания через календарь (через " + days + " дней)");
         NewsFilterUtils.selectFutureEndDateViaCalendar(days);
     }
 
-    @Step("Выбрать прошедшую дату начала через календарь (за {days} дней до сегодня)")
     public void selectPastStartDateViaCalendar(int days) {
+        Allure.step("Выбрать прошедшую дату начала через календарь (за " + days + " дней до сегодня)");
         NewsFilterUtils.selectPastStartDateViaCalendar(days);
     }
 
-    @Step("Применить фильтр")
     public void applyFilter() {
+        Allure.step("Применить фильтр");
         ViewInteraction applyButton = onView(withId(R.id.filter_button));
         WaitUtils.waitForElement(applyButton, LONG_DELAY);
         applyButton.perform(click());
         WaitUtils.waitForMillis(SHORT_DELAY);
     }
 
-    @Step("Отменить фильтрацию")
     public void cancelFilter() {
+        Allure.step("Отменить фильтрацию");
         ViewInteraction cancelButton = onView(withId(R.id.cancel_button));
         WaitUtils.waitForElement(cancelButton, LONG_DELAY);
         cancelButton.perform(click());
         WaitUtils.waitForMillis(SHORT_DELAY);
     }
 
-    @Step("Проверка отображения диалога фильтрации")
     public boolean isFilterDialogDisplayed() {
+        Allure.step("Проверка отображения диалога фильтрации");
         try {
             onView(withText("Filter news")).check(matches(isDisplayed()));
             return true;
@@ -58,8 +56,8 @@ public class NewsFilterPage {
         }
     }
 
-    @Step("Проверка отображения всех элементов фильтра")
     public boolean areAllFilterElementsDisplayed() {
+        Allure.step("Проверка отображения всех элементов фильтра");
         try {
             WaitUtils.waitForMillis(MEDIUM_DELAY);
             onView(withText("Filter news")).check(matches(isDisplayed()));
@@ -74,8 +72,8 @@ public class NewsFilterPage {
         }
     }
 
-    @Step("Проверка функциональности выпадающего списка категорий")
     public boolean checkCategoryDropdownFunctionality() {
+        Allure.step("Проверка функциональности выпадающего списка категорий");
         try {
             onView(withId(R.id.news_item_category_text_auto_complete_text_view)).perform(click());
             return true;
@@ -84,8 +82,8 @@ public class NewsFilterPage {
         }
     }
 
-    @Step("Проверка функциональности выбора даты")
     public boolean checkDatePickerFunctionality() {
+        Allure.step("Проверка функциональности выбора даты");
         try {
             onView(withId(R.id.news_item_publish_date_start_text_input_edit_text)).perform(click());
             WaitUtils.waitForElementWithText("OK", LONG_DELAY);
@@ -99,17 +97,18 @@ public class NewsFilterPage {
         }
     }
 
-    @Step("Установить невалидные даты")
     public void setInvalidDates() {
+        Allure.step("Установить невалидные даты (начало раньше окончания)");
         try {
             selectFutureEndDateViaCalendar(1);
             selectPastStartDateViaCalendar(1);
         } catch (Exception e) {
+            // Игнорируем исключение
         }
     }
 
-    @Step("Проверка отображения ошибки")
     public boolean isErrorDisplayed() {
+        Allure.step("Проверка отображения ошибки 'Wrong date format'");
         try {
             WaitUtils.waitForElementWithText("Wrong date format", LONG_DELAY);
             return true;

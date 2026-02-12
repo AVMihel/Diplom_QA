@@ -5,8 +5,7 @@ import androidx.test.filters.LargeTest;
 
 import org.junit.Rule;
 
-import io.qameta.allure.kotlin.Step;
-import io.qameta.allure.kotlin.junit4.DisplayName;
+import io.qameta.allure.kotlin.Allure;
 import ru.iteco.fmhandroid.R;
 import ru.iteco.fmhandroid.ui.AppActivity;
 import ru.iteco.fmhandroid.ui.pages.AuthorizationPage;
@@ -14,7 +13,6 @@ import ru.iteco.fmhandroid.ui.pages.MainPage;
 import ru.iteco.fmhandroid.ui.utils.WaitUtils;
 
 @LargeTest
-@DisplayName("Базовый класс для тестов")
 public abstract class BaseTest {
 
     private static final int MEDIUM_DELAY = 500;
@@ -33,8 +31,8 @@ public abstract class BaseTest {
         AUTH_SCREEN, MAIN_SCREEN, UNKNOWN_SCREEN
     }
 
-    @Step("Определение текущего экрана приложения")
     private ScreenState detectCurrentScreen() {
+        Allure.step("Определение текущего экрана приложения");
         if (authPage.isAuthorizationScreenDisplayed()) {
             return ScreenState.AUTH_SCREEN;
         }
@@ -46,8 +44,8 @@ public abstract class BaseTest {
         return ScreenState.UNKNOWN_SCREEN;
     }
 
-    @Step("Безопасный выход из системы")
     protected void performSafeLogout() {
+        Allure.step("Безопасный выход из системы");
         try {
             mainPage.tryToLogout();
             WaitUtils.waitForMillis(MEDIUM_DELAY);
@@ -56,8 +54,8 @@ public abstract class BaseTest {
         }
     }
 
-    @Step("Ожидание появления экрана авторизации")
     protected void waitForAuthScreen(int timeoutMillis) {
+        Allure.step("Ожидание появления экрана авторизации");
         long endTime = System.currentTimeMillis() + timeoutMillis;
         while (System.currentTimeMillis() < endTime) {
             if (authPage.isAuthorizationScreenDisplayed()) {
@@ -67,15 +65,15 @@ public abstract class BaseTest {
         }
     }
 
-    @Step("Проверка что мы на экране авторизации")
     protected void ensureOnAuthScreen() {
+        Allure.step("Проверка что мы на экране авторизации");
         if (!authPage.isAuthorizationScreenDisplayed()) {
             throw new IllegalStateException("Not on authorization screen");
         }
     }
 
-    @Step("Настройка тестового окружения - вернуться на экран авторизации")
     protected void setUpToAuthScreen() {
+        Allure.step("Настройка тестового окружения - вернуться на экран авторизации");
         WaitUtils.waitForMillis(MEDIUM_DELAY);
 
         ScreenState currentState = detectCurrentScreen();
@@ -105,8 +103,8 @@ public abstract class BaseTest {
         ensureOnAuthScreen();
     }
 
-    @Step("Завершение теста - вернуться на экран авторизации")
     protected void tearDownToAuthScreen() {
+        Allure.step("Завершение теста - вернуться на экран авторизации");
         try {
             if (mainPage.isMainScreenDisplayed()) {
                 mainPage.tryToLogout();
@@ -117,8 +115,8 @@ public abstract class BaseTest {
         }
     }
 
-    @Step("Авторизация и переход на главный экран")
     protected void loginAndGoToMainScreen() {
+        Allure.step("Авторизация и переход на главный экран");
         authPage.checkAuthorizationScreenIsDisplayed();
         authPage.login(TestData.VALID_LOGIN, TestData.VALID_PASSWORD);
 
@@ -129,8 +127,8 @@ public abstract class BaseTest {
         }
     }
 
-    @Step("Проверка что мы на главном экране")
     protected void ensureOnMainScreen() {
+        Allure.step("Проверка что мы на главном экране");
         if (!mainPage.isMainScreenDisplayed()) {
             if (authPage.isAuthorizationScreenDisplayed()) {
                 loginAndGoToMainScreen();

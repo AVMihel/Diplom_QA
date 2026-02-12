@@ -8,6 +8,8 @@ import static androidx.test.espresso.matcher.ViewMatchers.withText;
 
 import androidx.test.espresso.ViewInteraction;
 
+import io.qameta.allure.kotlin.Allure;
+
 public class WaitUtils {
 
     private static final int DEFAULT_POLLING_INTERVAL = 50;
@@ -17,35 +19,35 @@ public class WaitUtils {
         boolean check();
     }
 
-    // Ожидание элемента по ID
     public static void waitForElementWithId(int id, long timeout) {
+        Allure.step("Ожидание элемента с ID: " + id + " (таймаут: " + timeout + " мс)");
         waitForCondition(() -> checkElement(withId(id)), timeout, "Element with ID: " + id);
     }
 
-    // Ожидание элемента по тексту
     public static void waitForElementWithText(String text, long timeout) {
+        Allure.step("Ожидание элемента с текстом: '" + text + "' (таймаут: " + timeout + " мс)");
         waitForCondition(() -> checkElement(withText(text)), timeout, "Element with text: '" + text + "'");
     }
 
-    // Ожидание элемента (ViewInteraction)
     public static void waitForElement(ViewInteraction element, long timeout) {
+        Allure.step("Ожидание ViewInteraction элемента (таймаут: " + timeout + " мс)");
         waitForCondition(() -> checkElement(element), timeout, "ViewInteraction element");
     }
 
-    // Проверка отображения элемента по ID (возвращает 'boolean')
     public static boolean isElementDisplayedWithId(int id, long timeout) {
+        Allure.step("Проверка отображения элемента с ID: " + id + " (таймаут: " + timeout + " мс)");
         return waitForCondition(() -> checkElement(withId(id)), timeout,
                 "Element with ID: " + id, false);
     }
 
-    // Проверка отображения элемента по тексту (возвращает 'boolean')
     public static boolean isElementDisplayedWithText(String text, long timeout) {
+        Allure.step("Проверка отображения элемента с текстом: '" + text + "' (таймаут: " + timeout + " мс)");
         return waitForCondition(() -> checkElement(withText(text)), timeout,
                 "Element with text: '" + text + "'", false);
     }
 
-    // Ожидание без условий (просто задержка)
     public static void waitForMillis(long millis) {
+        Allure.step("Ожидание " + millis + " мс");
         try {
             Thread.sleep(millis);
         } catch (InterruptedException e) {
@@ -53,8 +55,13 @@ public class WaitUtils {
         }
     }
 
-    // Ожидание появления любого из указанных элементов
     public static void waitForAnyElement(int[] ids, long timeout) {
+        StringBuilder idsStr = new StringBuilder();
+        for (int i = 0; i < ids.length; i++) {
+            idsStr.append(ids[i]);
+            if (i < ids.length - 1) idsStr.append(", ");
+        }
+        Allure.step("Ожидание любого из элементов с ID: [" + idsStr + "] (таймаут: " + timeout + " мс)");
         waitForCondition(() -> checkAnyElement(ids), timeout,
                 "Any of " + ids.length + " elements");
     }
@@ -78,7 +85,9 @@ public class WaitUtils {
             return true;
         }
         if (throwOnTimeout) {
-            throw new RuntimeException("Timeout waiting for: " + description);
+            String errorMsg = "Timeout waiting for: " + description + " (" + timeout + " мс)";
+            Allure.step("ОШИБКА: " + errorMsg);
+            throw new RuntimeException(errorMsg);
         }
         return false;
     }
@@ -109,6 +118,7 @@ public class WaitUtils {
                 onView(withId(id)).check(matches(isDisplayed()));
                 return true;
             } catch (Exception e) {
+                // Игнорируем, проверяем следующий элемент
             }
         }
         return false;

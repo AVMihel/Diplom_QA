@@ -11,12 +11,10 @@ import static org.hamcrest.Matchers.allOf;
 
 import androidx.test.espresso.ViewInteraction;
 
-import io.qameta.allure.kotlin.Step;
-import io.qameta.allure.kotlin.junit4.DisplayName;
+import io.qameta.allure.kotlin.Allure;
 import ru.iteco.fmhandroid.R;
 import ru.iteco.fmhandroid.ui.utils.WaitUtils;
 
-@DisplayName("Страница бокового меню навигации")
 public class NavigationDrawerPage {
 
     private static final int LONG_DELAY = 1500;
@@ -31,8 +29,8 @@ public class NavigationDrawerPage {
     private static final int MAIN_MENU_BUTTON_ID = R.id.main_menu_image_button;
     private static final int ABOUT_BACK_BUTTON_ID = R.id.about_back_image_button;
 
-    @Step("Открытие бокового меню")
     public NavigationDrawerPage openMenu() {
+        Allure.step("Открытие бокового меню");
         ViewInteraction menuButton = onView(
                 allOf(withId(MAIN_MENU_BUTTON_ID), isDisplayed())
         );
@@ -41,54 +39,54 @@ public class NavigationDrawerPage {
         return this;
     }
 
-    @Step("Проверка отображения меню")
     public NavigationDrawerPage checkMenuIsDisplayed() {
+        Allure.step("Проверка отображения меню");
         WaitUtils.waitForElementWithText(MAIN_MENU_TEXT, LONG_DELAY);
         return this;
     }
 
-    @Step("Получение состояния пункта меню 'Main'")
     public boolean isMainMenuItemActive() {
+        Allure.step("Получение состояния пункта меню 'Main'");
         return isMenuItemActive(MAIN_MENU_TEXT);
     }
 
-    @Step("Получение состояния пункта меню 'News'")
     public boolean isNewsMenuItemActive() {
+        Allure.step("Получение состояния пункта меню 'News'");
         return isMenuItemActive(NEWS_MENU_TEXT);
     }
 
-    @Step("Получение состояния пункта меню 'About'")
     public boolean isAboutMenuItemActive() {
+        Allure.step("Получение состояния пункта меню 'About'");
         return isMenuItemActive(ABOUT_MENU_TEXT);
     }
 
-    @Step("Клик по пункту меню 'Main'")
     public NavigationDrawerPage clickMainMenuItem() {
+        Allure.step("Клик по пункту меню 'Main'");
         clickMenuItem(MAIN_MENU_TEXT);
         return this;
     }
 
-    @Step("Клик по пункту меню 'News'")
     public NavigationDrawerPage clickNewsMenuItem() {
+        Allure.step("Клик по пункту меню 'News'");
         clickMenuItem(NEWS_MENU_TEXT);
         return this;
     }
 
-    @Step("Клик по пункту меню 'About'")
     public NavigationDrawerPage clickAboutMenuItem() {
+        Allure.step("Клик по пункту меню 'About'");
         clickMenuItem(ABOUT_MENU_TEXT);
         return this;
     }
 
-    @Step("Нажатие кнопки 'Назад' на экране 'About'")
     public NavigationDrawerPage clickAboutBackButton() {
+        Allure.step("Нажатие кнопки 'Назад' на экране 'About'");
         waitForElementWithId(ABOUT_BACK_BUTTON_ID, LONG_DELAY);
         onView(withId(ABOUT_BACK_BUTTON_ID)).perform(click());
         return this;
     }
 
-    @Step("Проверка активности пункта меню")
     private boolean isMenuItemActive(String menuText) {
+        Allure.step("Проверка активности пункта меню: " + menuText);
         ViewInteraction menuItem = onView(
                 allOf(withId(MENU_ITEM_ID), withText(menuText), isDisplayed())
         );
@@ -102,8 +100,8 @@ public class NavigationDrawerPage {
         }
     }
 
-    @Step("Клик по пункту меню: {menuText}")
     private void clickMenuItem(String menuText) {
+        Allure.step("Клик по пункту меню: " + menuText);
         ViewInteraction menuItem = onView(
                 allOf(withId(MENU_ITEM_ID), withText(menuText), isDisplayed())
         );

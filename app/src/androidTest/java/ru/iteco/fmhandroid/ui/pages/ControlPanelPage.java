@@ -32,13 +32,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import io.qameta.allure.kotlin.Step;
-import io.qameta.allure.kotlin.junit4.DisplayName;
+import io.qameta.allure.kotlin.Allure;
 import ru.iteco.fmhandroid.R;
 import ru.iteco.fmhandroid.ui.core.TestData;
 import ru.iteco.fmhandroid.ui.utils.WaitUtils;
 
-@DisplayName("Страница Control Panel для управления новостями")
 public class ControlPanelPage {
 
     private static final int SHORT_DELAY = 200;
@@ -46,6 +44,7 @@ public class ControlPanelPage {
     private static final int LONG_DELAY = 1500;
     private static final Pattern DATE_PATTERN = Pattern.compile("(\\d{2})\\.(\\d{2})\\.(\\d{4})");
 
+    // ID элементов
     private static final int ADD_NEWS_BUTTON_ID = R.id.add_news_image_view;
     private static final int SORT_BUTTON_ID = R.id.sort_news_material_button;
     private static final int FILTER_BUTTON_ID = R.id.filter_news_material_button;
@@ -59,22 +58,22 @@ public class ControlPanelPage {
     private static final int CREATION_DATE_ID = R.id.news_item_create_date_text_view;
     private static final int[] CONTROL_PANEL_IDS = {ADD_NEWS_BUTTON_ID, SORT_BUTTON_ID, NEWS_LIST_RECYCLER_ID};
 
-
-    @Step("Навигация в Control Panel с главного экрана")
     public ControlPanelPage navigateToControlPanelFromMain(NavigationDrawerPage navigationDrawer, NewsPage newsPage) {
+        Allure.step("Навигация в Control Panel с главного экрана");
         navigationDrawer.openMenu().clickNewsMenuItem();
         assertTrue("News page should be displayed", newsPage.isSortButtonDisplayed());
         clickEditNewsButton();
         assertTrue("Control Panel should be displayed", isControlPanelDisplayed());
         return this;
     }
-    @Step("Проверка отображения Control Panel")
-    public void checkControlPanelIsDisplayed() {
-        WaitUtils.waitForAnyElement(CONTROL_PANEL_IDS, LONG_DELAY);
-    }
 
-    @Step("Проверка отображения Control Panel (возвращает 'boolean')")
+    public void checkControlPanelIsDisplayed() {
+        Allure.step("Проверка отображения Control Panel");
+        WaitUtils.waitForAnyElement(CONTROL_PANEL_IDS, LONG_DELAY);    }
+
+
     public boolean isControlPanelDisplayed() {
+        Allure.step("Проверка отображения Control Panel");
         try {
             checkControlPanelIsDisplayed();
             return true;
@@ -83,15 +82,15 @@ public class ControlPanelPage {
         }
     }
 
-    @Step("Нажатие кнопки редактирования новостей")
     public void clickEditNewsButton() {
+        Allure.step("Нажатие кнопки редактирования новостей");
         ViewInteraction editButton = onView(allOf(withId(EDIT_NEWS_BUTTON_ID), isDisplayed()));
         WaitUtils.waitForElement(editButton, LONG_DELAY);
         editButton.perform(click());
     }
 
-    @Step("Навигация к созданию новой новости")
     public CreateEditNewsPage navigateToCreateNews() {
+        Allure.step("Навигация к созданию новой новости");
         checkControlPanelIsDisplayed();
         ViewInteraction addButton = onView(allOf(withId(ADD_NEWS_BUTTON_ID), withContentDescription("Add news button"), isDisplayed()));
         WaitUtils.waitForElement(addButton, LONG_DELAY);
@@ -102,8 +101,8 @@ public class ControlPanelPage {
         return createPage;
     }
 
-    @Step("Навигация к редактированию новости")
     public CreateEditNewsPage navigateToEditNews() {
+        Allure.step("Навигация к редактированию новости");
         checkControlPanelIsDisplayed();
         ViewInteraction recyclerView = onView(allOf(withId(NEWS_LIST_RECYCLER_ID), isDisplayed()));
         WaitUtils.waitForElement(recyclerView, LONG_DELAY);
@@ -114,23 +113,23 @@ public class ControlPanelPage {
         return editPage;
     }
 
-    @Step("Открыть фильтр новостей")
     public void openNewsFilter() {
+        Allure.step("Открыть фильтр новостей");
         ViewInteraction filterButton = onView(allOf(withId(FILTER_BUTTON_ID), isDisplayed()));
         WaitUtils.waitForElement(filterButton, LONG_DELAY);
         filterButton.perform(click());
         WaitUtils.waitForElementWithId(R.id.filter_news_title_text_view, LONG_DELAY);
     }
 
-    @Step("Клик по кнопке сортировки новостей")
     public void clickSortButton() {
+        Allure.step("Клик по кнопке сортировки новостей");
         ViewInteraction sortButton = onView(allOf(withId(SORT_BUTTON_ID), isDisplayed()));
         WaitUtils.waitForElement(sortButton, LONG_DELAY);
         sortButton.perform(click());
     }
 
-    @Step("Создание тестовой новости")
     public String createTestNews(String title, String category, String date, String time, String description) {
+        Allure.step("Создание тестовой новости с заголовком: " + title);
         CreateEditNewsPage createPage = navigateToCreateNews();
         WaitUtils.waitForElementWithId(R.id.news_item_title_text_input_edit_text, LONG_DELAY);
 
@@ -153,14 +152,14 @@ public class ControlPanelPage {
         return title;
     }
 
-    @Step("Проверка создания новости")
     public boolean verifyNewsCreated(String title) {
+        Allure.step("Проверка создания новости с заголовком: " + title);
         return verifyNewsCreatedWithTimeout(title, LONG_DELAY);
     }
 
-    @Step("Создание новости для теста удаления")
     public String createNewsForDeletionTest() {
         String title = TestData.News.E2E.TEST_TITLE_PREFIX + System.currentTimeMillis();
+        Allure.step("Создание новости для теста удаления: " + title);
         return createTestNewsWithCalendar(
                 title,
                 TestData.News.CATEGORY_ANNOUNCEMENT,
@@ -170,9 +169,9 @@ public class ControlPanelPage {
         );
     }
 
-    @Step("Создание новости для теста дат")
     public String createNewsForDateTest(int year) {
         String title = TestData.News.E2E.DATE_TEST_TITLE_PREFIX + year + "_" + System.currentTimeMillis();
+        Allure.step("Создание новости для теста дат с годом: " + year + ", заголовок: " + title);
         LocalDate currentDate = LocalDate.now();
         String date = String.format("%02d.%02d.%d",
                 currentDate.getDayOfMonth(),
@@ -188,8 +187,8 @@ public class ControlPanelPage {
         );
     }
 
-    @Step("Удаление новости по заголовку")
     public void deleteCreatedNewsByExactTitle(String title) {
+        Allure.step("Удаление новости по заголовку: " + title);
         scrollToTop();
         WaitUtils.waitForMillis(1000);
 
@@ -228,8 +227,8 @@ public class ControlPanelPage {
         performDeleteConfirmation();
     }
 
-    @Step("Поиск новости в списке")
     public boolean findNewsByTitleWithScroll(String title) {
+        Allure.step("Поиск новости в списке по заголовку: " + title);
         try {
             if (WaitUtils.isElementDisplayedWithText(title, SHORT_DELAY)) {
                 return true;
@@ -249,8 +248,8 @@ public class ControlPanelPage {
         }
     }
 
-    @Step("Проверка видимости новости")
     public boolean isNewsDisplayed(String title) {
+        Allure.step("Проверка видимости новости с заголовком: " + title);
         try {
             return WaitUtils.isElementDisplayedWithText(title, SHORT_DELAY) || findNewsByTitleWithScroll(title);
         } catch (Exception e) {
@@ -258,8 +257,8 @@ public class ControlPanelPage {
         }
     }
 
-    @Step("Проверка элементов управления новостями")
     public void checkNewsElementsExist() {
+        Allure.step("Проверка элементов управления новостями");
         checkControlPanelIsDisplayed();
         ViewInteraction recyclerView = onView(allOf(withId(NEWS_LIST_RECYCLER_ID), isDisplayed()));
         WaitUtils.waitForElement(recyclerView, LONG_DELAY);
@@ -277,8 +276,8 @@ public class ControlPanelPage {
                 .check(matches(isDisplayed()));
     }
 
-    @Step("Проверка отображения элементов управления новостями (возвращает 'boolean')")
     public boolean areNewsElementsDisplayed() {
+        Allure.step("Проверка отображения элементов управления новостями");
         try {
             checkNewsElementsExist();
             return true;
@@ -287,8 +286,8 @@ public class ControlPanelPage {
         }
     }
 
-    @Step("Управление отображением описания")
     public void expandAndCollapseNewsDescription() {
+        Allure.step("Раскрытие и скрытие описания новости");
         checkControlPanelIsDisplayed();
         ViewInteraction recyclerView = onView(allOf(withId(NEWS_LIST_RECYCLER_ID), isDisplayed()));
         WaitUtils.waitForElement(recyclerView, LONG_DELAY);
@@ -298,8 +297,8 @@ public class ControlPanelPage {
         WaitUtils.waitForMillis(SHORT_DELAY);
     }
 
-    @Step("Проверка функциональности описания новости (возвращает 'boolean')")
     public boolean isNewsDescriptionFunctional() {
+        Allure.step("Проверка функциональности описания новости");
         try {
             expandAndCollapseNewsDescription();
             return true;
@@ -308,8 +307,8 @@ public class ControlPanelPage {
         }
     }
 
-    @Step("Получение года из даты создания")
     public int getCreationDateYear(String newsTitle) {
+        Allure.step("Получение года из даты создания новости: " + newsTitle);
         checkControlPanelIsDisplayed();
         boolean found = findNewsByTitleWithScroll(newsTitle);
         if (!found) {
@@ -328,8 +327,8 @@ public class ControlPanelPage {
         return extractYearFromDate(dateText);
     }
 
-    @Step("Проверка отображения даты публикации (возвращает 'boolean')")
     public boolean isPublicationDateDisplayed(String title, String expectedDate) {
+        Allure.step("Проверка отображения даты публикации для новости: " + title + ", ожидаемая дата: " + expectedDate);
         try {
             if (!findNewsByTitleWithScroll(title)) {
                 return false;
@@ -356,17 +355,18 @@ public class ControlPanelPage {
         }
     }
 
-    @Step("Прокрутка к началу списка")
     public void scrollToTop() {
+        Allure.step("Прокрутка к началу списка новостей");
         try {
             onView(withId(NEWS_LIST_RECYCLER_ID)).perform(scrollToPosition(0));
             WaitUtils.waitForElementWithId(NEWS_TITLE_VIEW_ID, MEDIUM_DELAY);
         } catch (Exception e) {
+            // Игнорируем исключение
         }
     }
 
-    @Step("Создание новостей для проверки сортировки")
     public Map<String, String> createTestNewsForSortingTest() {
+        Allure.step("Создание новостей для проверки сортировки");
         Map<String, String> createdNews = new HashMap<>();
 
         String todayTitle = TestData.News.Sorting.generateUniqueTitle(TestData.News.Sorting.TODAY_NEWS_PREFIX);
@@ -386,8 +386,8 @@ public class ControlPanelPage {
         return createdNews;
     }
 
-    @Step("Проверка видимости новости без прокрутки")
     public boolean isNewsVisibleWithoutScroll(String title) {
+        Allure.step("Проверка видимости новости без прокрутки: " + title);
         try {
             onView(allOf(
                     withId(R.id.news_item_title_text_view),
@@ -400,8 +400,8 @@ public class ControlPanelPage {
         }
     }
 
-    @Step("Проверка пустого списка новостей (возвращает 'boolean')")
     public boolean isNewsListEmpty() {
+        Allure.step("Проверка пустого списка новостей");
         try {
             onView(withText("There is nothing here yet...")).check(matches(isDisplayed()));
             return true;
@@ -415,8 +415,8 @@ public class ControlPanelPage {
         }
     }
 
-    @Step("Проверка наличия неактивных новостей (возвращает 'boolean')")
     public boolean hasInactiveNews() {
+        Allure.step("Проверка наличия неактивных новостей");
         try {
             onView(withText("NOT ACTIVE")).check(matches(isDisplayed()));
             return true;
@@ -425,8 +425,8 @@ public class ControlPanelPage {
         }
     }
 
-    @Step("Проверка наличия активных новостей (возвращает 'boolean')")
     public boolean hasActiveNews() {
+        Allure.step("Проверка наличия активных новостей");
         try {
             onView(withText("ACTIVE")).check(matches(isDisplayed()));
             return true;
@@ -435,8 +435,8 @@ public class ControlPanelPage {
         }
     }
 
-    @Step("Проверка многострочного описания новости")
     public boolean isMultilineDescriptionDisplayed(String newsTitle, String expectedDescription) {
+        Allure.step("Проверка многострочного описания новости: " + newsTitle);
         try {
             boolean found = findNewsByTitleWithScroll(newsTitle);
             if (!found) {
@@ -475,9 +475,10 @@ public class ControlPanelPage {
         }
     }
 
-    @Step("Создание тестовой новости с выбором даты через календарь")
     public String createTestNewsWithCalendar(String title, String category, int daysFromNow,
                                              String time, String description) {
+        Allure.step("Создание тестовой новости с выбором даты через календарь. Заголовок: " + title +
+                ", категория: " + category + ", дней от текущей: " + daysFromNow);
         CreateEditNewsPage createPage = navigateToCreateNews();
         WaitUtils.waitForElementWithId(R.id.news_item_title_text_input_edit_text, LONG_DELAY);
 

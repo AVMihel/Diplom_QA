@@ -25,12 +25,10 @@ import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
 
-import io.qameta.allure.kotlin.Step;
-import io.qameta.allure.kotlin.junit4.DisplayName;
+import io.qameta.allure.kotlin.Allure;
 import ru.iteco.fmhandroid.R;
 import ru.iteco.fmhandroid.ui.utils.WaitUtils;
 
-@DisplayName("Страница авторизации")
 public class AuthorizationPage {
 
     private static final int SHORT_DELAY = 200;
@@ -47,25 +45,26 @@ public class AuthorizationPage {
     private static final int PASSWORD_INPUT_LAYOUT_ID = R.id.password_text_input_layout;
     private static final int ENTER_BUTTON_ID = R.id.enter_button;
 
-    @Step("Проверка отображения экрана авторизации (возвращает 'boolean')")
     public boolean isAuthorizationScreenDisplayed() {
-        return isAuthScreenDisplayed(LONG_DELAY);    }
+        Allure.step("Проверка отображения экрана авторизации");
+        return isAuthScreenDisplayed(LONG_DELAY);
+    }
 
-
-    @Step("Проверка отображения экрана авторизации")
     public AuthorizationPage checkAuthorizationScreenIsDisplayed() {
+        Allure.step("Проверка отображения экрана авторизации");
         WaitUtils.waitForElementWithId(LOGIN_INPUT_LAYOUT_ID, LONG_DELAY);
         return this;
     }
 
-    @Step("Проверка отображения сообщения 'Something went wrong. Try again later.'")
     public void checkSomethingWentWrongMessage() {
+        Allure.step("Проверка отображения сообщения 'Something went wrong. Try again later.'");
         boolean messageFound = false;
         try {
             onView(withText(ERROR_SOMETHING_WENT_WRONG))
                     .check(matches(isDisplayed()));
             messageFound = true;
         } catch (Exception e) {
+            // Игнорируем исключение
         }
         if (!messageFound) {
             try {
@@ -74,6 +73,7 @@ public class AuthorizationPage {
                         .check(matches(isDisplayed()));
                 messageFound = true;
             } catch (Exception ex) {
+                // Игнорируем исключение
             }
         }
         if (!messageFound) {
@@ -81,14 +81,15 @@ public class AuthorizationPage {
         }
     }
 
-    @Step("Проверка отображения сообщения 'Login and password cannot be empty'")
     public void checkEmptyFieldsMessage() {
+        Allure.step("Проверка отображения сообщения 'Login and password cannot be empty'");
         boolean messageFound = false;
         try {
             onView(withText(ERROR_LOGIN_PASSWORD_EMPTY))
                     .check(matches(isDisplayed()));
             messageFound = true;
         } catch (Exception e) {
+            // Игнорируем исключение
         }
         if (!messageFound) {
             try {
@@ -97,6 +98,7 @@ public class AuthorizationPage {
                         .check(matches(isDisplayed()));
                 messageFound = true;
             } catch (Exception ex) {
+                // Игнорируем исключение
             }
         }
         if (!messageFound) {
@@ -104,40 +106,40 @@ public class AuthorizationPage {
         }
     }
 
-    @Step("Выполнение авторизации с логином: {login} и паролем: {password}")
     public void login(String login, String password) {
+        Allure.step("Выполнение авторизации с логином: " + login + " и паролем: " + password);
         checkAuthorizationScreenIsDisplayed();
         enterLogin(login);
         enterPassword(password);
         clickSignInButton();
     }
 
-    @Step("Ввод логина: {login}")
     public AuthorizationPage enterLogin(String login) {
+        Allure.step("Ввод логина: " + login);
         waitForElementWithId(LOGIN_INPUT_LAYOUT_ID, LONG_DELAY);
         onView(getLoginField()).perform(replaceText(login), closeSoftKeyboard());
         delay();
         return this;
     }
 
-    @Step("Ввод пароля: {password}")
     public AuthorizationPage enterPassword(String password) {
+        Allure.step("Ввод пароля: " + password);
         waitForElementWithId(PASSWORD_INPUT_LAYOUT_ID, LONG_DELAY);
         onView(getPasswordField()).perform(replaceText(password), closeSoftKeyboard());
         delay();
         return this;
     }
 
-    @Step("Клик по кнопке 'Sign in'")
     public AuthorizationPage clickSignInButton() {
+        Allure.step("Клик по кнопке 'Sign in'");
         waitForElementWithId(ENTER_BUTTON_ID, LONG_DELAY);
         onView(allOf(withId(ENTER_BUTTON_ID), withText(SIGN_IN_TEXT), isDisplayed()))
                 .perform(click());
         return this;
     }
 
-    @Step("Проверка, что все поля пустые (возвращает 'boolean')")
     public boolean areAllFieldsEmpty() {
+        Allure.step("Проверка, что все поля пустые");
         try {
             String loginText = getLoginText();
             String passwordText = getPasswordText();
@@ -147,19 +149,18 @@ public class AuthorizationPage {
         }
     }
 
-    @Step("Получить текст из поля логина")
     public String getLoginText() {
+        Allure.step("Получение текста из поля логина");
         return getTextFieldText(LOGIN_INPUT_LAYOUT_ID);
     }
 
-    @Step("Получить текст из поля пароля")
     public String getPasswordText() {
+        Allure.step("Получение текста из поля пароля");
         return getTextFieldText(PASSWORD_INPUT_LAYOUT_ID);
     }
 
     // Вспомогательные методы
 
-    @Step("Проверка отображения экрана авторизации с таймаутом {timeout} мс")
     private boolean isAuthScreenDisplayed(long timeout) {
         long endTime = System.currentTimeMillis() + timeout;
         while (System.currentTimeMillis() < endTime) {
@@ -181,8 +182,8 @@ public class AuthorizationPage {
         WaitUtils.waitForElementWithId(elementId, timeout);
     }
 
-    @Step("Получение текста из текстового поля")
     private String getTextFieldText(int layoutId) {
+        Allure.step("Получение текста из текстового поля");
         try {
             final String[] text = new String[1];
             onView(allOf(
