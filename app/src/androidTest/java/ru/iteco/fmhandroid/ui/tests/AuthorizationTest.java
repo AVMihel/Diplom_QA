@@ -40,13 +40,10 @@ public class AuthorizationTest extends BaseTest {
     @Description("TC-AUTH-01: Успешная авторизация с валидными данными")
     @Story("Пользователь может войти с правильными учетными данными")
     public void testSuccessfulAuthorizationWithValidCredentials() {
-        Allure.step("Шаг 1: Проверка отображения экрана авторизации");
-        authPage.checkAuthorizationScreenIsDisplayed();
-
-        Allure.step("Шаг 2: Ввод валидных учетных данных");
+        Allure.step("Шаг 1: Ввод валидных учетных данных");
         authPage.login(TestData.VALID_LOGIN, TestData.VALID_PASSWORD);
 
-        Allure.step("Шаг 3: Проверка перехода на главный экран");
+        Allure.step("Шаг 2: Проверка перехода на главный экран");
         assertTrue("BUG: Main screen should be displayed after successful login with valid credentials",
                 mainPage.isMainScreenDisplayed());
     }
@@ -88,19 +85,16 @@ public class AuthorizationTest extends BaseTest {
     @Description("TC-AUTH-04: Валидация пустого поля 'Логин'")
     @Story("Система проверяет обязательные поля")
     public void testValidationOfEmptyLoginField() {
-        Allure.step("Шаг 1: Проверка отображения экрана авторизации");
-        authPage.checkAuthorizationScreenIsDisplayed();
-
-        Allure.step("Шаг 2: Ввод только пароля");
+        Allure.step("Шаг 1: Ввод только пароля");
         authPage.enterPassword(TestData.VALID_PASSWORD);
 
-        Allure.step("Шаг 3: Клик по кнопке 'Sign in'");
+        Allure.step("Шаг 2: Клик по кнопке 'Sign in'");
         authPage.clickSignInButton();
 
-        Allure.step("Шаг 4: Проверка сообщения об ошибке");
+        Allure.step("Шаг 3: Проверка сообщения об ошибке");
         authPage.checkEmptyFieldsMessage();
 
-        Allure.step("Шаг 5: Проверка, что остались на экране авторизации");
+        Allure.step("Шаг 4: Проверка, что остались на экране авторизации");
         assertTrue("BUG: Authorization with empty Login field should not be successful",
                 authPage.isAuthorizationScreenDisplayed());
     }
@@ -110,19 +104,16 @@ public class AuthorizationTest extends BaseTest {
     @Description("TC-AUTH-05: Валидация пустого поля 'Пароль'")
     @Story("Система проверяет обязательные поля")
     public void testValidationOfEmptyPasswordField() {
-        Allure.step("Шаг 1: Проверка отображения экрана авторизации");
-        authPage.checkAuthorizationScreenIsDisplayed();
-
-        Allure.step("Шаг 2: Ввод только логина");
+        Allure.step("Шаг 1: Ввод только логина");
         authPage.enterLogin(TestData.VALID_LOGIN);
 
-        Allure.step("Шаг 3: Клик по кнопке 'Sign in'");
+        Allure.step("Шаг 2: Клик по кнопке 'Sign in'");
         authPage.clickSignInButton();
 
-        Allure.step("Шаг 4: Проверка сообщения об ошибке");
+        Allure.step("Шаг 3: Проверка сообщения об ошибке");
         authPage.checkEmptyFieldsMessage();
 
-        Allure.step("Шаг 5: Проверка, что остались на экране авторизации");
+        Allure.step("Шаг 4: Проверка, что остались на экране авторизации");
         assertTrue("BUG: Authorization with empty Password field should not be successful",
                 authPage.isAuthorizationScreenDisplayed());
     }
@@ -180,22 +171,19 @@ public class AuthorizationTest extends BaseTest {
     @Description("TC-AUTH-10: Валидация логина из одних пробелов")
     @Story("Логин не может состоять только из пробелов")
     public void testLoginWithOnlySpaces() {
-        Allure.step("Шаг 1: Проверка отображения экрана авторизации");
-        authPage.checkAuthorizationScreenIsDisplayed();
-
-        Allure.step("Шаг 2: Ввод логина, состоящего только из пробелов");
+        Allure.step("Шаг 1: Ввод логина, состоящего только из пробелов");
         authPage.enterLogin(TestData.LOGIN_ONLY_SPACES);
 
-        Allure.step("Шаг 3: Ввод валидного пароля");
+        Allure.step("Шаг 2: Ввод валидного пароля");
         authPage.enterPassword(TestData.VALID_PASSWORD);
 
-        Allure.step("Шаг 4: Клик по кнопке 'Sign in'");
+        Allure.step("Шаг 3: Клик по кнопке 'Sign in'");
         authPage.clickSignInButton();
 
-        Allure.step("Шаг 5: Проверка сообщения об ошибке");
+        Allure.step("Шаг 4: Проверка сообщения об ошибке");
         authPage.checkEmptyFieldsMessage();
 
-        Allure.step("Шаг 6: Проверка, что остались на экране авторизации");
+        Allure.step("Шаг 5: Проверка, что остались на экране авторизации");
         assertTrue("BUG: Authorization with Login field filled with spaces should not be successful",
                 authPage.isAuthorizationScreenDisplayed());
     }

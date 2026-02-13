@@ -220,8 +220,7 @@ public class NewsListFilterTest extends BaseTest {
 
         Allure.step("Шаг 4: Проверка отображения ошибки валидации");
         boolean errorDisplayed = newsFilterPage.isErrorDisplayed();
-        assertTrue("BUG: Date range validation in news filter should work correctly",
-                errorDisplayed);
+        assertTrue("BUG: Date range validation in news filter should work correctly", errorDisplayed);
 
         Allure.step("Шаг 5: Отмена фильтрации");
         newsFilterPage.cancelFilter();

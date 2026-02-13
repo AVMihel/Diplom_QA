@@ -107,14 +107,19 @@ public class NewsE2ETest extends BaseTest {
     @Story("Пользователь может редактировать новость с предзаполненными полями")
     public void testE2ENewsEditing() {
         String originalTitle = TestData.News.E2E.ORIGINAL_TITLE_PREFIX + System.currentTimeMillis();
+        String originalDescription = TestData.News.Editing.EDITING_ORIGINAL_DESCRIPTION;
+        String originalCategory = TestData.News.CATEGORY_ANNOUNCEMENT;
+        String originalDate = TestData.News.getFutureDate(1);
+        String originalTime = TestData.News.DEFAULT_TIME;
+
         Allure.step("Шаг 1: Создание исходной новости. Заголовок: " + originalTitle);
 
         String createdTitle = controlPanelPage.createTestNews(
                 originalTitle,
-                TestData.News.CATEGORY_ANNOUNCEMENT,
-                TestData.News.getFutureDate(1),
-                TestData.News.DEFAULT_TIME,
-                TestData.News.Editing.EDITING_ORIGINAL_DESCRIPTION
+                originalCategory,
+                originalDate,
+                originalTime,
+                originalDescription
         );
 
         Allure.step("Шаг 2: Проверка успешного создания новости");
@@ -125,21 +130,52 @@ public class NewsE2ETest extends BaseTest {
         CreateEditNewsPage editPage = controlPanelPage.navigateToEditNews();
         editPage.isEditScreenDisplayed();
 
+        Allure.step("Шаг 4: Проверка предзаполнения полей исходными данными");
+
+        String actualTitle = editPage.getTitleText();
+        assertTrue("Заголовок должен быть предзаполнен. Ожидалось: '" + originalTitle +
+                        "', Фактически: '" + actualTitle + "'",
+                actualTitle.equals(originalTitle));
+
+        String actualDescription = editPage.getDescriptionText();
+        assertTrue("Описание должно быть предзаполнено. Ожидалось: '" + originalDescription +
+                        "', Фактически: '" + actualDescription + "'",
+                actualDescription.equals(originalDescription));
+
+        String actualCategory = editPage.getCategoryText();
+        assertTrue("Категория должна быть предзаполнена. Ожидалось: '" + originalCategory +
+                        "', Фактически: '" + actualCategory + "'",
+                actualCategory.equals(originalCategory));
+
+        String actualDate = editPage.getPublishDateText();
+        assertTrue("Дата должна быть предзаполнена. Ожидалось: '" + originalDate +
+                        "', Фактически: '" + actualDate + "'",
+                actualDate.equals(originalDate));
+
+        String actualTime = editPage.getPublishTimeText();
+        assertTrue("Время должно быть предзаполнено. Ожидалось: '" + originalTime +
+                        "', Фактически: '" + actualTime + "'",
+                actualTime.equals(originalTime));
+
+        Allure.step("Шаг 5: Проверка статуса 'Active'");
+        boolean isActive = editPage.isActiveSwitchChecked();
+        assertTrue("Статус 'Active' должен быть включен по умолчанию", isActive);
+
         String updatedTitle = TestData.News.E2E.UPDATED_TITLE_PREFIX + System.currentTimeMillis();
-        Allure.step("Шаг 4: Изменение заголовка на: " + updatedTitle);
+        Allure.step("Шаг 6: Изменение заголовка на: " + updatedTitle);
         editPage.fillTitle(updatedTitle);
         editPage.clickSaveButton();
 
-        Allure.step("Шаг 5: Проверка возврата в Control Panel");
+        Allure.step("Шаг 7: Проверка возврата в Control Panel");
         assertTrue("BUG: E2E news editing flow should return to Control Panel after saving",
                 controlPanelPage.isControlPanelDisplayed());
 
-        Allure.step("Шаг 6: Проверка успешного обновления новости");
+        Allure.step("Шаг 8: Проверка успешного обновления новости");
         boolean isNewsUpdated = controlPanelPage.isNewsDisplayed(updatedTitle);
         assertTrue("BUG: E2E news editing flow should successfully update news", isNewsUpdated);
 
         try {
-            Allure.step("Шаг 7: Очистка - удаление обновленной новости");
+            Allure.step("Шаг 9: Очистка - удаление обновленной новости");
             controlPanelPage.deleteCreatedNewsByExactTitle(updatedTitle);
         } catch (Exception e) {
             Allure.step("Очистка - удаление исходной новости");

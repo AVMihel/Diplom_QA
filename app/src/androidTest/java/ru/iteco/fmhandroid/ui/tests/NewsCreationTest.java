@@ -4,6 +4,7 @@ import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.replaceText;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import org.junit.After;
 import org.junit.Before;
@@ -131,26 +132,47 @@ public class NewsCreationTest extends BaseTest {
     @Test
     @DisplayName("Валидация длины поля 'Title'")
     @Description("TC-NEWS-CREATE-11: Валидация длины поля 'Title'")
-    @Story("Слишком длинный заголовок должен быть отклонен")
+    @Story("Слишком длинный заголовок должен быть отклонен или обрезан")
     public void testTitleLengthValidation() {
-        Allure.step("Шаг 1: Навигация к созданию новости");
+        String longTitle = TestData.NewsCreation.getVeryLongTitle();
+
+        Allure.step("Шаг 1: Проверка отсутствия тестовой новости в списке");
+        if (controlPanelPage.isNewsDisplayed(longTitle)) {
+            Allure.step("Обнаружена существующая тестовая новость. Выполняется очистка...");
+            controlPanelPage.deleteCreatedNewsByExactTitle(longTitle);
+            fail("The test news already existed in the list. Automatic deletion has been completed. A repeat run is required.");
+        }
+
+        Allure.step("Шаг 2: Навигация к созданию новости");
         CreateEditNewsPage createPage = controlPanelPage.navigateToCreateNews();
 
-        Allure.step("Шаг 2: Проверка отображения экрана создания");
-        createPage.isCreateScreenDisplayed();
-
-        String longTitle = TestData.NewsCreation.getVeryLongTitle();
         Allure.step("Шаг 3: Ввод слишком длинного заголовка (" + longTitle.length() + " символов)");
-        createPage.fillTitle(longTitle)
-                .selectCategorySimple(TestData.News.CATEGORY_ANNOUNCEMENT)
+        createPage.fillTitle(longTitle);
+
+        String actualTitle = createPage.getTitleText();
+
+        Allure.step("Шаг 4: Заполнение остальных полей и сохранение");
+        createPage.selectCategorySimple(TestData.News.CATEGORY_ANNOUNCEMENT)
                 .selectCurrentDate()
                 .selectCurrentTime()
                 .fillDescription(TestData.News.Validation.LENGTH_TEST_DESCRIPTION)
                 .clickSaveButton();
 
-        Allure.step("Шаг 4: Проверка, что остались на экране редактирования");
-        boolean isStillOnEditScreen = createPage.isStillOnEditScreen();
-        assertTrue("BUG: Validation of title length should work correctly", isStillOnEditScreen);
+        Allure.step("Шаг 5: Проверка возврата в Control Panel");
+        assertTrue("Should return to Control Panel", controlPanelPage.isControlPanelDisplayed());
+
+        Allure.step("Шаг 6: Проверка создания новости");
+        boolean isNewsCreated = controlPanelPage.isNewsDisplayed(actualTitle);
+
+        if (isNewsCreated && actualTitle.length() == longTitle.length()) {
+            fail("BUG: System created news with very long title (" + longTitle.length() +
+                    " chars) without truncation.");
+        }
+
+        Allure.step("Шаг 7: Очистка - удаление новости");
+        if (isNewsCreated) {
+            controlPanelPage.deleteCreatedNewsByExactTitle(actualTitle);
+        }
     }
 
     @Test

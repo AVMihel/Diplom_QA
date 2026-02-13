@@ -10,10 +10,18 @@ import static androidx.test.espresso.matcher.RootMatchers.isDialog;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
+import static org.hamcrest.Matchers.allOf;
 
+import android.view.View;
+import android.widget.EditText;
+import android.widget.TextView;
+
+import androidx.test.espresso.UiController;
+import androidx.test.espresso.ViewAction;
 import androidx.test.espresso.ViewInteraction;
 
-import io.qameta.allure.kotlin.Allure;
+import org.hamcrest.Matcher;
+
 import ru.iteco.fmhandroid.R;
 import ru.iteco.fmhandroid.ui.utils.DatePickerUtils;
 import ru.iteco.fmhandroid.ui.utils.WaitUtils;
@@ -32,15 +40,16 @@ public class CreateEditNewsPage {
     private static final int CANCEL_BUTTON_ID = R.id.cancel_button;
     private static final int PUBLISH_DATE_FIELD_ID = R.id.news_item_publish_date_text_input_edit_text;
     private static final int PUBLISH_TIME_FIELD_ID = R.id.news_item_publish_time_text_input_edit_text;
+    private static final int SWITCHER_ID = R.id.switcher;
 
+    // Проверка отображения экрана редактирования новости
     public void checkEditScreenIsDisplayed() {
-        Allure.step("Проверка отображения экрана редактирования новости");
         waitForElementWithId(TITLE_FIELD_ID, LONG_DELAY);
         checkTitleFieldDisplayed();
     }
 
+    // Проверка отображения экрана редактирования
     public boolean isEditScreenDisplayed() {
-        Allure.step("Проверка отображения экрана редактирования");
         try {
             checkEditScreenIsDisplayed();
             return true;
@@ -49,8 +58,8 @@ public class CreateEditNewsPage {
         }
     }
 
+    // Проверка отображения экрана создания новости
     public void checkCreateScreenIsDisplayed() {
-        Allure.step("Проверка отображения экрана создания новости");
         if (WaitUtils.isElementDisplayedWithId(CATEGORY_FIELD_ID, MEDIUM_DELAY)) {
             checkCategoryFieldDisplayed();
         } else {
@@ -59,8 +68,8 @@ public class CreateEditNewsPage {
         }
     }
 
+    // Проверка отображения экрана создания
     public boolean isCreateScreenDisplayed() {
-        Allure.step("Проверка отображения экрана создания");
         try {
             checkCreateScreenIsDisplayed();
             return true;
@@ -69,8 +78,8 @@ public class CreateEditNewsPage {
         }
     }
 
+    // Заполнение заголовка новости
     public CreateEditNewsPage fillTitle(String title) {
-        Allure.step("Заполнение заголовка новости: " + title);
         ViewInteraction titleField = onView(withId(TITLE_FIELD_ID));
         waitForElement(titleField, LONG_DELAY);
         titleField.perform(replaceText(title), closeSoftKeyboard());
@@ -78,8 +87,8 @@ public class CreateEditNewsPage {
         return this;
     }
 
+    // Выбор категории новости
     public CreateEditNewsPage selectCategorySimple(String category) {
-        Allure.step("Выбор категории новости: " + category);
         try {
             onView(withId(CATEGORY_FIELD_ID))
                     .perform(replaceText(category), closeSoftKeyboard());
@@ -96,8 +105,8 @@ public class CreateEditNewsPage {
         return this;
     }
 
+    // Заполнение описания новости
     public CreateEditNewsPage fillDescription(String description) {
-        Allure.step("Заполнение описания новости");
         try {
             ViewInteraction descriptionField = onView(withId(DESCRIPTION_FIELD_ID));
             waitForElement(descriptionField, LONG_DELAY);
@@ -109,15 +118,15 @@ public class CreateEditNewsPage {
         return this;
     }
 
+    // Нажатие кнопки SAVE для сохранения новости
     public void clickSaveButton() {
-        Allure.step("Нажатие кнопки SAVE для сохранения новости");
         ViewInteraction saveButton = onView(withId(SAVE_BUTTON_ID));
         waitForElement(saveButton, LONG_DELAY);
         saveButton.perform(click());
     }
 
+    // Отмена редактирования с подтверждением
     public void cancelWithConfirmation() {
-        Allure.step("Отмена редактирования с подтверждением");
         try {
             onView(withId(CANCEL_BUTTON_ID)).perform(scrollTo(), click());
             confirmDialog("OK");
@@ -126,23 +135,23 @@ public class CreateEditNewsPage {
         }
     }
 
+    // Проверка отображения сообщения об ошибке
     public boolean isErrorMessageDisplayed(String message) {
-        Allure.step("Проверка отображения сообщения об ошибке: " + message);
         return WaitUtils.isElementDisplayedWithText(message, LONG_DELAY);
     }
 
+    // Проверка отображения поля заголовка
     public void checkTitleFieldDisplayed() {
-        Allure.step("Проверка отображения поля заголовка");
         onView(withId(TITLE_FIELD_ID)).check(matches(isDisplayed()));
     }
 
+    // Проверка отображения поля категории
     public void checkCategoryFieldDisplayed() {
-        Allure.step("Проверка отображения поля категории");
         onView(withId(CATEGORY_FIELD_ID)).check(matches(isDisplayed()));
     }
 
+    // Проверка отображения поля категории
     public boolean isCategoryFieldDisplayed() {
-        Allure.step("Проверка отображения поля категории");
         try {
             checkCategoryFieldDisplayed();
             return true;
@@ -151,49 +160,126 @@ public class CreateEditNewsPage {
         }
     }
 
+    // Выбор текущей даты публикации через календарь
     public CreateEditNewsPage selectCurrentDate() {
-        Allure.step("Выбор текущей даты публикации через календарь");
         DatePickerUtils.selectCurrentDateViaCalendar();
         return this;
     }
 
+    // Выбор текущего времени публикации через часы
     public CreateEditNewsPage selectCurrentTime() {
-        Allure.step("Выбор текущего времени публикации через часы");
         DatePickerUtils.selectCurrentTimeViaTimePicker();
         return this;
     }
 
-    public CreateEditNewsPage selectFutureDate(int days) {
-        Allure.step("Выбор будущей даты публикации через календарь (через " + days + " дней)");
-        DatePickerUtils.selectFutureDateViaCalendar(days);
-        return this;
-    }
-
+    // Выбор прошедшей даты публикации через календарь
     public CreateEditNewsPage selectPastDate(int days) {
-        Allure.step("Выбор прошедшей даты публикации через календарь (за " + days + " дней до сегодня)");
         DatePickerUtils.selectPastDateViaCalendar(days);
         return this;
     }
 
-    public CreateEditNewsPage selectTime(String time) {
-        Allure.step("Выбор времени публикации через часы: " + time);
-        DatePickerUtils.selectTimeViaTimePicker(time);
-        return this;
-    }
-
+    // Проверка отображения ошибки валидации
     public boolean isValidationErrorDisplayed() {
-        Allure.step("Проверка отображения ошибки валидации");
         return isErrorMessageDisplayed("Saving failed") ||
                 isErrorMessageDisplayed("Try again later");
     }
 
+    // Проверка, что остались на экране создания/редактирования
     public boolean isStillOnEditScreen() {
-        Allure.step("Проверка, что остались на экране создания/редактирования");
         return WaitUtils.isElementDisplayedWithId(TITLE_FIELD_ID, MEDIUM_DELAY);
     }
 
+    // Внутренний метод для получения текста из поля по ID
+    private String getTextFromField(int fieldId) {
+        final String[] text = new String[1];
+
+        WaitUtils.waitForElementWithId(fieldId, LONG_DELAY);
+
+        onView(allOf(withId(fieldId), isDisplayed()))
+                .perform(new ViewAction() {
+                    @Override
+                    public Matcher<View> getConstraints() {
+                        return isDisplayed();
+                    }
+
+                    @Override
+                    public String getDescription() {
+                        return "get text from field with id: " + fieldId;
+                    }
+
+                    @Override
+                    public void perform(UiController uiController, View view) {
+                        if (view instanceof TextView) {
+                            text[0] = ((TextView) view).getText().toString();
+                        } else if (view instanceof EditText) {
+                            text[0] = ((EditText) view).getText().toString();
+                        } else {
+                            text[0] = "";
+                        }
+                        uiController.loopMainThreadUntilIdle();
+                    }
+                });
+
+        return text[0] != null ? text[0].trim() : "";
+    }
+
+    // Получение текста из поля заголовка
+    public String getTitleText() {
+        return getTextFromField(TITLE_FIELD_ID);
+    }
+
+    // Получение текста из поля описания
+    public String getDescriptionText() {
+        return getTextFromField(DESCRIPTION_FIELD_ID);
+    }
+
+    // Получение текста из поля категории
+    public String getCategoryText() {
+        return getTextFromField(CATEGORY_FIELD_ID);
+    }
+
+    // Получение текста из поля даты публикации
+    public String getPublishDateText() {
+        return getTextFromField(PUBLISH_DATE_FIELD_ID);
+    }
+
+    // Получение текста из поля времени публикации
+    public String getPublishTimeText() {
+        return getTextFromField(PUBLISH_TIME_FIELD_ID);
+    }
+
+    // Получение статуса переключателя Active
+    public boolean isActiveSwitchChecked() {
+        final boolean[] isChecked = new boolean[1];
+        WaitUtils.waitForElementWithId(SWITCHER_ID, LONG_DELAY);
+
+        onView(withId(SWITCHER_ID)).perform(new ViewAction() {
+            @Override
+            public Matcher<View> getConstraints() {
+                return isDisplayed();
+            }
+
+            @Override
+            public String getDescription() {
+                return "get switch state";
+            }
+
+            @Override
+            public void perform(UiController uiController, View view) {
+                if (view instanceof android.widget.Switch) {
+                    isChecked[0] = ((android.widget.Switch) view).isChecked();
+                } else if (view instanceof android.widget.CompoundButton) {
+                    isChecked[0] = ((android.widget.CompoundButton) view).isChecked();
+                }
+                uiController.loopMainThreadUntilIdle();
+            }
+        });
+
+        return isChecked[0];
+    }
+
+    // Подтверждение диалога с кнопкой
     private void confirmDialog(String buttonText) {
-        Allure.step("Подтверждение диалога с кнопкой: " + buttonText);
         WaitUtils.waitForElementWithText(buttonText, LONG_DELAY);
         onView(withText(buttonText)).inRoot(isDialog()).perform(click());
     }

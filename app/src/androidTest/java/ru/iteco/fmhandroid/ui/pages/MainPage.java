@@ -11,7 +11,6 @@ import static org.hamcrest.Matchers.allOf;
 
 import androidx.test.espresso.ViewInteraction;
 
-import io.qameta.allure.kotlin.Allure;
 import ru.iteco.fmhandroid.R;
 import ru.iteco.fmhandroid.ui.utils.WaitUtils;
 
@@ -38,23 +37,23 @@ public class MainPage {
     private static final int NEWS_REFRESH_BUTTON_ID = R.id.news_retry_material_button;
     private static final int ALL_NEWS_CARDS_BLOCK_ID = R.id.all_news_cards_block_constraint_layout;
 
+    // Быстрая проверка отображения главного экрана
     public boolean isMainScreenDisplayedQuick(long timeout) {
-        Allure.step("Быстрая проверка отображения главного экрана");
         return isElementDisplayedQuickly(getAllNewsButtonOnMain(), timeout);
     }
 
+    // Проверка отображения главного экрана
     public boolean isMainScreenDisplayed() {
-        Allure.step("Проверка отображения главного экрана");
         return isMainScreenDisplayedQuick(LONG_DELAY);
     }
 
+    // Проверка отображения экрана новостей
     public boolean isNewsScreenDisplayed() {
-        Allure.step("Проверка отображения экрана новостей");
         return isElementWithTextDisplayedQuickly(NEWS_TEXT, LONG_DELAY);
     }
 
+    // Проверка отображения экрана 'О приложении'
     public boolean isAboutScreenDisplayed() {
-        Allure.step("Проверка отображения экрана 'О приложении'");
         try {
             WaitUtils.waitForElementWithId(ABOUT_VERSION_TITLE_ID, LONG_DELAY);
             onView(withId(ABOUT_VERSION_TITLE_ID)).check(matches(withText(VERSION_TEXT)));
@@ -64,13 +63,13 @@ public class MainPage {
         }
     }
 
+    // Проверка отображения блока новостей на главном экране
     public boolean checkNewsBlockOnMainIsDisplayed() {
-        Allure.step("Проверка отображения блока новостей на главном экране");
         return isElementDisplayedQuickly(getNewsBlock(), LONG_DELAY);
     }
 
+    // Проверка доступности кнопки Refresh в альбомной ориентации
     public boolean isRefreshButtonAccessibleInLandscape() {
-        Allure.step("Проверка доступности кнопки Refresh в альбомной ориентации");
         try {
             ViewInteraction refreshButton = onView(
                     allOf(
@@ -109,22 +108,22 @@ public class MainPage {
         }
     }
 
+    // Клик по кнопке 'Quotes'
     public void clickQuotesButton() {
-        Allure.step("Клик по кнопке 'Quotes'");
         waitForElement(getQuotesButton(), LONG_DELAY);
         getQuotesButton().perform(click());
     }
 
+    // Выход из приложения
     public void logout() {
-        Allure.step("Выход из приложения");
         waitForElement(getLogoutButton(), LONG_DELAY);
         getLogoutButton().perform(click());
         WaitUtils.waitForElementWithText(LOG_OUT_TEXT, LONG_DELAY);
         onView(withText(LOG_OUT_TEXT)).perform(click());
     }
 
+    // Попытка выхода из приложения
     public void tryToLogout() {
-        Allure.step("Попытка выхода из приложения");
         try {
             if (isElementDisplayedQuickly(getLogoutButton(), LONG_DELAY)) {
                 getLogoutButton().perform(click());

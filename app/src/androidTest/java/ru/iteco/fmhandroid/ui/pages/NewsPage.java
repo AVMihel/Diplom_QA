@@ -13,7 +13,6 @@ import static org.hamcrest.Matchers.allOf;
 import androidx.test.espresso.ViewInteraction;
 import androidx.test.espresso.matcher.ViewMatchers;
 
-import io.qameta.allure.kotlin.Allure;
 import ru.iteco.fmhandroid.R;
 import ru.iteco.fmhandroid.ui.utils.WaitUtils;
 
@@ -32,50 +31,50 @@ public class NewsPage {
     private static final int NEWS_BLOCK_CONTROL_BUTTON_ID = R.id.expand_material_button;
     private static final int SORT_BUTTON_ID = R.id.sort_news_material_button;
 
+    // Проверка отображения кнопки 'ALL NEWS'
     public NewsPage checkAllNewsButtonIsDisplayed() {
-        Allure.step("Проверка отображения кнопки 'ALL NEWS'");
         waitForElement(getAllNewsButton(), LONG_DELAY);
         return this;
     }
 
+    // Проверка отображения кнопки 'ALL NEWS'
     public boolean isAllNewsButtonDisplayed() {
-        Allure.step("Проверка отображения кнопки 'ALL NEWS'");
         return isElementDisplayedQuickly(getAllNewsButton(), SHORT_DELAY);
     }
 
+    // Проверка, что кнопка 'ALL NEWS' скрыта
     public boolean isAllNewsButtonHidden() {
-        Allure.step("Проверка, что кнопка 'ALL NEWS' скрыта");
         return !isElementDisplayedQuickly(getAllNewsButton(), SHORT_DELAY);
     }
 
+    // Проверка отображения кнопки сворачивания/разворачивания
     public boolean isExpandNewsButtonDisplayed() {
-        Allure.step("Проверка отображения кнопки сворачивания/разворачивания");
         return isElementDisplayedQuickly(getExpandNewsButton(), SHORT_DELAY);
     }
 
+    // Клик по кнопке 'ALL NEWS'
     public NewsPage clickAllNewsButton() {
-        Allure.step("Клик по кнопке 'ALL NEWS'");
         waitForElement(getAllNewsButton(), LONG_DELAY);
         getAllNewsButton().perform(click());
         WaitUtils.waitForMillis(MEDIUM_DELAY);
         return this;
     }
 
+    // Клик по кнопке сворачивания/разворачивания
     public NewsPage clickExpandNewsButton() {
-        Allure.step("Клик по кнопке сворачивания/разворачивания");
         waitForElement(getExpandNewsButton(), LONG_DELAY);
         getExpandNewsButton().perform(click());
         WaitUtils.waitForMillis(MEDIUM_DELAY);
         return this;
     }
 
+    // Проверка отображения кнопки сортировки
     public boolean isSortButtonDisplayed() {
-        Allure.step("Проверка отображения кнопки сортировки");
         return isElementDisplayedQuickly(getSortButton(), SHORT_DELAY);
     }
 
+    // Клик по кнопке 'Quotes' на экране News
     public NewsPage clickQuotesButtonOnNewsScreen() {
-        Allure.step("Клик по кнопке 'Quotes' на экране News");
         ViewInteraction quotesButtonOnNews = onView(
                 allOf(
                         withId(R.id.our_mission_image_button),
@@ -89,8 +88,8 @@ public class NewsPage {
         return this;
     }
 
+    // Проверка пустого списка новостей
     public boolean isNewsListEmpty() {
-        Allure.step("Проверка пустого списка новостей");
         try {
             onView(withText("There is nothing here yet...")).check(matches(isDisplayed()));
             return true;
@@ -99,8 +98,8 @@ public class NewsPage {
         }
     }
 
+    // Проверка отображения списка новостей
     public boolean isNewsListDisplayed() {
-        Allure.step("Проверка отображения списка новостей");
         try {
             onView(withId(R.id.news_list_recycler_view)).check(matches(withEffectiveVisibility(ViewMatchers.Visibility.VISIBLE)));
             return true;
@@ -109,8 +108,8 @@ public class NewsPage {
         }
     }
 
+    // Проверка отображения элементов управления новостями
     public boolean areNewsControlsDisplayed() {
-        Allure.step("Проверка отображения элементов управления новостями");
         try {
             onView(withId(R.id.sort_news_material_button)).check(matches(isDisplayed()));
             onView(withId(R.id.filter_news_material_button)).check(matches(isDisplayed()));
@@ -121,8 +120,8 @@ public class NewsPage {
         }
     }
 
+    // Открытие фильтра новостей
     public boolean openNewsFilter() {
-        Allure.step("Открытие фильтра новостей");
         try {
             ViewInteraction filterButton = onView(withId(R.id.filter_news_material_button));
             waitForElement(filterButton, LONG_DELAY);
@@ -133,8 +132,8 @@ public class NewsPage {
         }
     }
 
+    // Клик по кнопке редактирования новостей
     public NewsPage clickEditNewsButton() {
-        Allure.step("Клик по кнопке редактирования новостей");
         ViewInteraction editButton = onView(withId(R.id.edit_news_material_button));
         waitForElement(editButton, LONG_DELAY);
         editButton.perform(click());

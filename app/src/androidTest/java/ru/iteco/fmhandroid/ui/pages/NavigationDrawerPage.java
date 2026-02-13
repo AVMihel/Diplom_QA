@@ -11,7 +11,6 @@ import static org.hamcrest.Matchers.allOf;
 
 import androidx.test.espresso.ViewInteraction;
 
-import io.qameta.allure.kotlin.Allure;
 import ru.iteco.fmhandroid.R;
 import ru.iteco.fmhandroid.ui.utils.WaitUtils;
 
@@ -29,8 +28,8 @@ public class NavigationDrawerPage {
     private static final int MAIN_MENU_BUTTON_ID = R.id.main_menu_image_button;
     private static final int ABOUT_BACK_BUTTON_ID = R.id.about_back_image_button;
 
+    // Открытие бокового меню
     public NavigationDrawerPage openMenu() {
-        Allure.step("Открытие бокового меню");
         ViewInteraction menuButton = onView(
                 allOf(withId(MAIN_MENU_BUTTON_ID), isDisplayed())
         );
@@ -39,54 +38,54 @@ public class NavigationDrawerPage {
         return this;
     }
 
+    // Проверка отображения меню
     public NavigationDrawerPage checkMenuIsDisplayed() {
-        Allure.step("Проверка отображения меню");
         WaitUtils.waitForElementWithText(MAIN_MENU_TEXT, LONG_DELAY);
         return this;
     }
 
+    // Получение состояния пункта меню 'Main'
     public boolean isMainMenuItemActive() {
-        Allure.step("Получение состояния пункта меню 'Main'");
         return isMenuItemActive(MAIN_MENU_TEXT);
     }
 
+    // Получение состояния пункта меню 'News'
     public boolean isNewsMenuItemActive() {
-        Allure.step("Получение состояния пункта меню 'News'");
         return isMenuItemActive(NEWS_MENU_TEXT);
     }
 
+    // Получение состояния пункта меню 'About'
     public boolean isAboutMenuItemActive() {
-        Allure.step("Получение состояния пункта меню 'About'");
         return isMenuItemActive(ABOUT_MENU_TEXT);
     }
 
+    // Клик по пункту меню 'Main'
     public NavigationDrawerPage clickMainMenuItem() {
-        Allure.step("Клик по пункту меню 'Main'");
         clickMenuItem(MAIN_MENU_TEXT);
         return this;
     }
 
+    // Клик по пункту меню 'News'
     public NavigationDrawerPage clickNewsMenuItem() {
-        Allure.step("Клик по пункту меню 'News'");
         clickMenuItem(NEWS_MENU_TEXT);
         return this;
     }
 
+    // Клик по пункту меню 'About'
     public NavigationDrawerPage clickAboutMenuItem() {
-        Allure.step("Клик по пункту меню 'About'");
         clickMenuItem(ABOUT_MENU_TEXT);
         return this;
     }
 
+    // Нажатие кнопки 'Назад' на экране 'About'
     public NavigationDrawerPage clickAboutBackButton() {
-        Allure.step("Нажатие кнопки 'Назад' на экране 'About'");
         waitForElementWithId(ABOUT_BACK_BUTTON_ID, LONG_DELAY);
         onView(withId(ABOUT_BACK_BUTTON_ID)).perform(click());
         return this;
     }
 
+    // Проверка активности пункта меню
     private boolean isMenuItemActive(String menuText) {
-        Allure.step("Проверка активности пункта меню: " + menuText);
         ViewInteraction menuItem = onView(
                 allOf(withId(MENU_ITEM_ID), withText(menuText), isDisplayed())
         );
@@ -100,8 +99,8 @@ public class NavigationDrawerPage {
         }
     }
 
+    // Клик по пункту меню
     private void clickMenuItem(String menuText) {
-        Allure.step("Клик по пункту меню: " + menuText);
         ViewInteraction menuItem = onView(
                 allOf(withId(MENU_ITEM_ID), withText(menuText), isDisplayed())
         );

@@ -5,8 +5,6 @@ import static ru.iteco.fmhandroid.ui.utils.WaitUtils.waitForMillis;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.uiautomator.UiDevice;
 
-import io.qameta.allure.kotlin.Allure;
-
 public class OrientationUtils {
 
     private static final int DEFAULT_ORIENTATION_DELAY = 2000;
@@ -19,13 +17,13 @@ public class OrientationUtils {
         return uiDevice;
     }
 
+    // Поворот экрана в ландшафтную ориентацию
     public static void rotateToLandscape() {
-        Allure.step("Поворот экрана в ландшафтную ориентацию");
         rotateToLandscape(DEFAULT_ORIENTATION_DELAY);
     }
 
+    // Поворот экрана в ландшафтную ориентацию с задержкой
     public static void rotateToLandscape(long delayMillis) {
-        Allure.step("Поворот экрана в ландшафтную ориентацию (задержка: " + delayMillis + " мс)");
         try {
             getDevice().setOrientationLeft();
             waitForMillis(delayMillis);
@@ -34,13 +32,13 @@ public class OrientationUtils {
         }
     }
 
+    // Поворот экрана в портретную ориентацию
     public static void rotateToPortrait() {
-        Allure.step("Поворот экрана в портретную ориентацию");
         rotateToPortrait(DEFAULT_ORIENTATION_DELAY);
     }
 
+    // Поворот экрана в портретную ориентацию с задержкой
     public static void rotateToPortrait(long delayMillis) {
-        Allure.step("Поворот экрана в портретную ориентацию (задержка: " + delayMillis + " мс)");
         try {
             getDevice().setOrientationNatural();
             waitForMillis(delayMillis);

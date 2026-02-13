@@ -25,17 +25,14 @@ import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
 
-import io.qameta.allure.kotlin.Allure;
 import ru.iteco.fmhandroid.R;
 import ru.iteco.fmhandroid.ui.utils.WaitUtils;
 
 public class AuthorizationPage {
 
-    private static final int SHORT_DELAY = 200;
     private static final int LONG_DELAY = 1500;
-    private static final int POLLING_DELAY = 50;
 
-    // Константы
+    // Текстовые константы
     private static final String SIGN_IN_TEXT = "Sign in";
     private static final String ERROR_SOMETHING_WENT_WRONG = "Something went wrong. Try again later.";
     private static final String ERROR_LOGIN_PASSWORD_EMPTY = "Login and password cannot be empty";
@@ -45,101 +42,78 @@ public class AuthorizationPage {
     private static final int PASSWORD_INPUT_LAYOUT_ID = R.id.password_text_input_layout;
     private static final int ENTER_BUTTON_ID = R.id.enter_button;
 
+    // Проверка отображения экрана авторизации
     public boolean isAuthorizationScreenDisplayed() {
-        Allure.step("Проверка отображения экрана авторизации");
-        return isAuthScreenDisplayed(LONG_DELAY);
+        try {
+            onView(withId(LOGIN_INPUT_LAYOUT_ID)).check(matches(isDisplayed()));
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
+    // Проверка отображения экрана авторизации
     public AuthorizationPage checkAuthorizationScreenIsDisplayed() {
-        Allure.step("Проверка отображения экрана авторизации");
         WaitUtils.waitForElementWithId(LOGIN_INPUT_LAYOUT_ID, LONG_DELAY);
         return this;
     }
 
+    // Проверка отображения сообщения 'Something went wrong. Try again later.'
     public void checkSomethingWentWrongMessage() {
-        Allure.step("Проверка отображения сообщения 'Something went wrong. Try again later.'");
-        boolean messageFound = false;
         try {
             onView(withText(ERROR_SOMETHING_WENT_WRONG))
+                    .inRoot(isToast())
                     .check(matches(isDisplayed()));
-            messageFound = true;
         } catch (Exception e) {
-            // Игнорируем исключение
-        }
-        if (!messageFound) {
-            try {
-                onView(withText(ERROR_SOMETHING_WENT_WRONG))
-                        .inRoot(isToast())
-                        .check(matches(isDisplayed()));
-                messageFound = true;
-            } catch (Exception ex) {
-                // Игнорируем исключение
-            }
-        }
-        if (!messageFound) {
-            throw new AssertionError("Message not found: '" + ERROR_SOMETHING_WENT_WRONG + "'");
+            onView(withText(ERROR_SOMETHING_WENT_WRONG))
+                    .check(matches(isDisplayed()));
         }
     }
 
+    // Проверка отображения сообщения 'Login and password cannot be empty'
     public void checkEmptyFieldsMessage() {
-        Allure.step("Проверка отображения сообщения 'Login and password cannot be empty'");
-        boolean messageFound = false;
         try {
             onView(withText(ERROR_LOGIN_PASSWORD_EMPTY))
+                    .inRoot(isToast())
                     .check(matches(isDisplayed()));
-            messageFound = true;
         } catch (Exception e) {
-            // Игнорируем исключение
-        }
-        if (!messageFound) {
-            try {
-                onView(withText(ERROR_LOGIN_PASSWORD_EMPTY))
-                        .inRoot(isToast())
-                        .check(matches(isDisplayed()));
-                messageFound = true;
-            } catch (Exception ex) {
-                // Игнорируем исключение
-            }
-        }
-        if (!messageFound) {
-            throw new AssertionError("Message not found: '" + ERROR_LOGIN_PASSWORD_EMPTY + "'");
+            onView(withText(ERROR_LOGIN_PASSWORD_EMPTY))
+                    .check(matches(isDisplayed()));
         }
     }
 
+    // Выполнение авторизации с логином и паролем
     public void login(String login, String password) {
-        Allure.step("Выполнение авторизации с логином: " + login + " и паролем: " + password);
         checkAuthorizationScreenIsDisplayed();
         enterLogin(login);
         enterPassword(password);
         clickSignInButton();
     }
 
+    // Ввод логина
     public AuthorizationPage enterLogin(String login) {
-        Allure.step("Ввод логина: " + login);
         waitForElementWithId(LOGIN_INPUT_LAYOUT_ID, LONG_DELAY);
         onView(getLoginField()).perform(replaceText(login), closeSoftKeyboard());
-        delay();
         return this;
     }
 
+    // Ввод пароля
     public AuthorizationPage enterPassword(String password) {
-        Allure.step("Ввод пароля: " + password);
         waitForElementWithId(PASSWORD_INPUT_LAYOUT_ID, LONG_DELAY);
         onView(getPasswordField()).perform(replaceText(password), closeSoftKeyboard());
-        delay();
         return this;
     }
 
+    // Клик по кнопке 'Sign in'
     public AuthorizationPage clickSignInButton() {
-        Allure.step("Клик по кнопке 'Sign in'");
         waitForElementWithId(ENTER_BUTTON_ID, LONG_DELAY);
         onView(allOf(withId(ENTER_BUTTON_ID), withText(SIGN_IN_TEXT), isDisplayed()))
                 .perform(click());
         return this;
     }
 
+    // Проверка, что все поля пустые
     public boolean areAllFieldsEmpty() {
-        Allure.step("Проверка, что все поля пустые");
         try {
             String loginText = getLoginText();
             String passwordText = getPasswordText();
@@ -149,41 +123,23 @@ public class AuthorizationPage {
         }
     }
 
+    // Получение текста из поля логина
     public String getLoginText() {
-        Allure.step("Получение текста из поля логина");
         return getTextFieldText(LOGIN_INPUT_LAYOUT_ID);
     }
 
+    // Получение текста из поля пароля
     public String getPasswordText() {
-        Allure.step("Получение текста из поля пароля");
         return getTextFieldText(PASSWORD_INPUT_LAYOUT_ID);
     }
 
     // Вспомогательные методы
-
-    private boolean isAuthScreenDisplayed(long timeout) {
-        long endTime = System.currentTimeMillis() + timeout;
-        while (System.currentTimeMillis() < endTime) {
-            try {
-                onView(withId(LOGIN_INPUT_LAYOUT_ID)).check(matches(isDisplayed()));
-                return true;
-            } catch (Exception e) {
-                WaitUtils.waitForMillis(POLLING_DELAY);
-            }
-        }
-        return false;
-    }
-
-    private void delay() {
-        WaitUtils.waitForMillis(SHORT_DELAY);
-    }
-
     private void waitForElementWithId(int elementId, long timeout) {
         WaitUtils.waitForElementWithId(elementId, timeout);
     }
 
+    // Получение текста из текстового поля
     private String getTextFieldText(int layoutId) {
-        Allure.step("Получение текста из текстового поля");
         try {
             final String[] text = new String[1];
             onView(allOf(
@@ -196,8 +152,7 @@ public class AuthorizationPage {
         }
     }
 
-    // Получение элементов
-
+    // Методы получения Matcher для полей ввода
     private Matcher<View> getLoginField() {
         return allOf(
                 withClassName(endsWith("EditText")),
@@ -233,8 +188,7 @@ public class AuthorizationPage {
         };
     }
 
-    // Внутренний класс для получения текста
-
+    // Внутренний класс для получения текста из EditText
     private static class GetTextAction implements ViewAction {
         private final String[] textHolder;
 

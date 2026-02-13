@@ -2,6 +2,7 @@ package ru.iteco.fmhandroid.ui.pages;
 
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
+import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
@@ -10,7 +11,6 @@ import static org.hamcrest.Matchers.allOf;
 import androidx.test.espresso.ViewInteraction;
 import androidx.test.espresso.contrib.RecyclerViewActions;
 
-import io.qameta.allure.kotlin.Allure;
 import ru.iteco.fmhandroid.R;
 import ru.iteco.fmhandroid.ui.utils.WaitUtils;
 
@@ -28,21 +28,21 @@ public class QuotesPage {
     private static final int QUOTES_RECYCLER_VIEW_ID = R.id.our_mission_item_list_recycler_view;
     private static final int QUOTE_DESCRIPTION_ID = R.id.our_mission_item_description_text_view;
 
+    // Проверка отображения экрана цитат
     public boolean isQuotesScreenDisplayed() {
-        Allure.step("Проверка отображения экрана цитат");
         WaitUtils.waitForMillis(MEDIUM_DELAY);
         return isElementDisplayedQuickly(getQuotesTitle(), LONG_DELAY);
     }
 
+    // Проверка отображения списка цитат
     public QuotesPage checkQuotesListIsDisplayed() {
-        Allure.step("Проверка отображения списка цитат");
         WaitUtils.waitForMillis(MEDIUM_DELAY);
         waitForElement(getQuotesRecyclerView(), LONG_DELAY);
         return this;
     }
 
+    // Развернуть/свернуть цитату по позиции
     public QuotesPage expandQuoteAtPosition(int position) {
-        Allure.step("Развернуть/свернуть цитату по позиции " + position);
         checkQuotesListIsDisplayed();
         getQuotesRecyclerView().perform(
                 RecyclerViewActions.actionOnItemAtPosition(position, click())
@@ -51,16 +51,21 @@ public class QuotesPage {
         return this;
     }
 
+    // Проверка отображения описания цитаты
     public boolean isQuoteDescriptionDisplayed() {
-        Allure.step("Проверка отображения описания цитаты");
         WaitUtils.waitForMillis(MEDIUM_DELAY);
         return isElementDisplayedQuickly(getQuoteDescriptionView(), LONG_DELAY);
     }
 
+    // Проверка, что описание цитаты скрыто
     public boolean isQuoteDescriptionHidden() {
-        Allure.step("Проверка, что описание цитаты скрыто");
         WaitUtils.waitForMillis(MEDIUM_DELAY);
-        return !isElementDisplayedQuickly(getQuoteDescriptionView(), SHORT_DELAY);
+        try {
+            onView(withId(QUOTE_DESCRIPTION_ID)).check(matches(isDisplayed()));
+            return false;
+        } catch (Exception e) {
+            return true;
+        }
     }
 
     // Вспомогательные методы

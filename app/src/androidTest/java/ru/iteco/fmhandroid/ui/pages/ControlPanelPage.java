@@ -2,7 +2,6 @@ package ru.iteco.fmhandroid.ui.pages;
 
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
-import static androidx.test.espresso.action.ViewActions.replaceText;
 import static androidx.test.espresso.action.ViewActions.swipeUp;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.contrib.RecyclerViewActions.actionOnItemAtPosition;
@@ -32,9 +31,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import io.qameta.allure.kotlin.Allure;
 import ru.iteco.fmhandroid.R;
 import ru.iteco.fmhandroid.ui.core.TestData;
+import ru.iteco.fmhandroid.ui.utils.DatePickerUtils;
 import ru.iteco.fmhandroid.ui.utils.WaitUtils;
 
 public class ControlPanelPage {
@@ -58,8 +57,8 @@ public class ControlPanelPage {
     private static final int CREATION_DATE_ID = R.id.news_item_create_date_text_view;
     private static final int[] CONTROL_PANEL_IDS = {ADD_NEWS_BUTTON_ID, SORT_BUTTON_ID, NEWS_LIST_RECYCLER_ID};
 
+    // Навигация в Control Panel с главного экрана
     public ControlPanelPage navigateToControlPanelFromMain(NavigationDrawerPage navigationDrawer, NewsPage newsPage) {
-        Allure.step("Навигация в Control Panel с главного экрана");
         navigationDrawer.openMenu().clickNewsMenuItem();
         assertTrue("News page should be displayed", newsPage.isSortButtonDisplayed());
         clickEditNewsButton();
@@ -67,13 +66,13 @@ public class ControlPanelPage {
         return this;
     }
 
+    // Проверка отображения Control Panel
     public void checkControlPanelIsDisplayed() {
-        Allure.step("Проверка отображения Control Panel");
-        WaitUtils.waitForAnyElement(CONTROL_PANEL_IDS, LONG_DELAY);    }
+        WaitUtils.waitForAnyElement(CONTROL_PANEL_IDS, LONG_DELAY);
+    }
 
-
+    // Проверка отображения Control Panel
     public boolean isControlPanelDisplayed() {
-        Allure.step("Проверка отображения Control Panel");
         try {
             checkControlPanelIsDisplayed();
             return true;
@@ -82,15 +81,15 @@ public class ControlPanelPage {
         }
     }
 
+    // Нажатие кнопки редактирования новостей
     public void clickEditNewsButton() {
-        Allure.step("Нажатие кнопки редактирования новостей");
         ViewInteraction editButton = onView(allOf(withId(EDIT_NEWS_BUTTON_ID), isDisplayed()));
         WaitUtils.waitForElement(editButton, LONG_DELAY);
         editButton.perform(click());
     }
 
+    // Навигация к созданию новой новости
     public CreateEditNewsPage navigateToCreateNews() {
-        Allure.step("Навигация к созданию новой новости");
         checkControlPanelIsDisplayed();
         ViewInteraction addButton = onView(allOf(withId(ADD_NEWS_BUTTON_ID), withContentDescription("Add news button"), isDisplayed()));
         WaitUtils.waitForElement(addButton, LONG_DELAY);
@@ -101,8 +100,8 @@ public class ControlPanelPage {
         return createPage;
     }
 
+    // Навигация к редактированию новости
     public CreateEditNewsPage navigateToEditNews() {
-        Allure.step("Навигация к редактированию новости");
         checkControlPanelIsDisplayed();
         ViewInteraction recyclerView = onView(allOf(withId(NEWS_LIST_RECYCLER_ID), isDisplayed()));
         WaitUtils.waitForElement(recyclerView, LONG_DELAY);
@@ -113,34 +112,53 @@ public class ControlPanelPage {
         return editPage;
     }
 
+    // Открыть фильтр новостей
     public void openNewsFilter() {
-        Allure.step("Открыть фильтр новостей");
         ViewInteraction filterButton = onView(allOf(withId(FILTER_BUTTON_ID), isDisplayed()));
         WaitUtils.waitForElement(filterButton, LONG_DELAY);
         filterButton.perform(click());
         WaitUtils.waitForElementWithId(R.id.filter_news_title_text_view, LONG_DELAY);
     }
 
+    // Клик по кнопке сортировки новостей
     public void clickSortButton() {
-        Allure.step("Клик по кнопке сортировки новостей");
         ViewInteraction sortButton = onView(allOf(withId(SORT_BUTTON_ID), isDisplayed()));
         WaitUtils.waitForElement(sortButton, LONG_DELAY);
         sortButton.perform(click());
     }
 
+    // Создание тестовой новости с указанием конкретной даты и времени
     public String createTestNews(String title, String category, String date, String time, String description) {
-        Allure.step("Создание тестовой новости с заголовком: " + title);
         CreateEditNewsPage createPage = navigateToCreateNews();
         WaitUtils.waitForElementWithId(R.id.news_item_title_text_input_edit_text, LONG_DELAY);
 
         createPage.fillTitle(title);
         WaitUtils.waitForMillis(SHORT_DELAY);
+
         createPage.selectCategorySimple(category);
         WaitUtils.waitForMillis(SHORT_DELAY);
-        onView(withId(R.id.news_item_publish_date_text_input_edit_text)).perform(replaceText(date));
-        WaitUtils.waitForMillis(SHORT_DELAY);
-        onView(withId(R.id.news_item_publish_time_text_input_edit_text)).perform(replaceText(time));
-        WaitUtils.waitForMillis(SHORT_DELAY);
+
+        try {
+            String[] dateParts = date.split("\\.");
+            int day = Integer.parseInt(dateParts[0]);
+            int month = Integer.parseInt(dateParts[1]);
+            int year = Integer.parseInt(dateParts[2]);
+
+            DatePickerUtils.selectDateViaCalendar(year, month, day);
+            WaitUtils.waitForMillis(MEDIUM_DELAY);
+        } catch (Exception e) {
+            DatePickerUtils.selectCurrentDateViaCalendar();
+            WaitUtils.waitForMillis(MEDIUM_DELAY);
+        }
+
+        try {
+            DatePickerUtils.selectTimeViaTimePicker(time);
+            WaitUtils.waitForMillis(MEDIUM_DELAY);
+        } catch (Exception e) {
+            DatePickerUtils.selectCurrentTimeViaTimePicker();
+            WaitUtils.waitForMillis(MEDIUM_DELAY);
+        }
+
         createPage.fillDescription(description);
         WaitUtils.waitForMillis(SHORT_DELAY);
 
@@ -152,14 +170,49 @@ public class ControlPanelPage {
         return title;
     }
 
+    // Создание тестовой новости с указанием дней от текущей даты
+    public String createTestNewsWithCalendar(String title, String category, int daysFromNow,
+                                             String time, String description) {
+        CreateEditNewsPage createPage = navigateToCreateNews();
+        WaitUtils.waitForElementWithId(R.id.news_item_title_text_input_edit_text, LONG_DELAY);
+
+        createPage.fillTitle(title);
+        WaitUtils.waitForMillis(SHORT_DELAY);
+
+        createPage.selectCategorySimple(category);
+        WaitUtils.waitForMillis(SHORT_DELAY);
+
+        if (daysFromNow == 0) {
+            DatePickerUtils.selectCurrentDateViaCalendar();
+        } else if (daysFromNow > 0) {
+            DatePickerUtils.selectFutureDateViaCalendar(daysFromNow);
+        } else {
+            DatePickerUtils.selectPastDateViaCalendar(Math.abs(daysFromNow));
+        }
+        WaitUtils.waitForMillis(MEDIUM_DELAY);
+
+        DatePickerUtils.selectTimeViaTimePicker(time);
+        WaitUtils.waitForMillis(MEDIUM_DELAY);
+
+        createPage.fillDescription(description);
+        WaitUtils.waitForMillis(SHORT_DELAY);
+
+        createPage.clickSaveButton();
+        checkControlPanelIsDisplayed();
+
+        boolean created = verifyNewsCreated(title);
+        assertTrue("Failed to create news with title: " + title, created);
+        return title;
+    }
+
+    // Проверка создания новости с заголовком
     public boolean verifyNewsCreated(String title) {
-        Allure.step("Проверка создания новости с заголовком: " + title);
         return verifyNewsCreatedWithTimeout(title, LONG_DELAY);
     }
 
+    // Создание новости для теста удаления
     public String createNewsForDeletionTest() {
         String title = TestData.News.E2E.TEST_TITLE_PREFIX + System.currentTimeMillis();
-        Allure.step("Создание новости для теста удаления: " + title);
         return createTestNewsWithCalendar(
                 title,
                 TestData.News.CATEGORY_ANNOUNCEMENT,
@@ -169,35 +222,36 @@ public class ControlPanelPage {
         );
     }
 
+    // Создание новости для теста дат
     public String createNewsForDateTest(int year) {
         String title = TestData.News.E2E.DATE_TEST_TITLE_PREFIX + year + "_" + System.currentTimeMillis();
-        Allure.step("Создание новости для теста дат с годом: " + year + ", заголовок: " + title);
-        LocalDate currentDate = LocalDate.now();
-        String date = String.format("%02d.%02d.%d",
-                currentDate.getDayOfMonth(),
-                currentDate.getMonthValue(),
-                year);
 
-        return createTestNews(
+        LocalDate currentDate = LocalDate.now();
+        LocalDate targetDate = LocalDate.of(year,
+                currentDate.getMonthValue(),
+                currentDate.getDayOfMonth());
+        int daysFromNow = (int) java.time.temporal.ChronoUnit.DAYS.between(currentDate, targetDate);
+
+        return createTestNewsWithCalendar(
                 title,
                 TestData.News.CATEGORY_ANNOUNCEMENT,
-                date,
+                daysFromNow,
                 TestData.News.DEFAULT_TIME,
                 TestData.News.E2E.DATE_TEST_DESCRIPTION_PREFIX + year
         );
     }
 
+    // Удаление новости по заголовку
     public void deleteCreatedNewsByExactTitle(String title) {
-        Allure.step("Удаление новости по заголовку: " + title);
         scrollToTop();
-        WaitUtils.waitForMillis(1000);
+        WaitUtils.waitForMillis(MEDIUM_DELAY);
 
         boolean found = false;
         for (int i = 0; i < 3; i++) {
             found = findNewsByTitleWithScroll(title);
             if (found) break;
             scrollToTop();
-            WaitUtils.waitForMillis(1000);
+            WaitUtils.waitForMillis(MEDIUM_DELAY);
         }
 
         if (!found) {
@@ -213,7 +267,7 @@ public class ControlPanelPage {
 
         WaitUtils.waitForElement(expandButton, LONG_DELAY);
         expandButton.perform(click());
-        WaitUtils.waitForMillis(800);
+        WaitUtils.waitForMillis(MEDIUM_DELAY);
 
         ViewInteraction deleteButton = onView(allOf(
                 withId(DELETE_NEWS_ICON_ID),
@@ -223,12 +277,12 @@ public class ControlPanelPage {
 
         WaitUtils.waitForElement(deleteButton, LONG_DELAY);
         deleteButton.perform(click());
-        WaitUtils.waitForMillis(500);
+        WaitUtils.waitForMillis(SHORT_DELAY);
         performDeleteConfirmation();
     }
 
+    // Поиск новости в списке по заголовку
     public boolean findNewsByTitleWithScroll(String title) {
-        Allure.step("Поиск новости в списке по заголовку: " + title);
         try {
             if (WaitUtils.isElementDisplayedWithText(title, SHORT_DELAY)) {
                 return true;
@@ -248,8 +302,8 @@ public class ControlPanelPage {
         }
     }
 
+    // Проверка видимости новости с заголовком
     public boolean isNewsDisplayed(String title) {
-        Allure.step("Проверка видимости новости с заголовком: " + title);
         try {
             return WaitUtils.isElementDisplayedWithText(title, SHORT_DELAY) || findNewsByTitleWithScroll(title);
         } catch (Exception e) {
@@ -257,8 +311,8 @@ public class ControlPanelPage {
         }
     }
 
+    // Проверка элементов управления новостями
     public void checkNewsElementsExist() {
-        Allure.step("Проверка элементов управления новостями");
         checkControlPanelIsDisplayed();
         ViewInteraction recyclerView = onView(allOf(withId(NEWS_LIST_RECYCLER_ID), isDisplayed()));
         WaitUtils.waitForElement(recyclerView, LONG_DELAY);
@@ -276,8 +330,8 @@ public class ControlPanelPage {
                 .check(matches(isDisplayed()));
     }
 
+    // Проверка отображения элементов управления новостями
     public boolean areNewsElementsDisplayed() {
-        Allure.step("Проверка отображения элементов управления новостями");
         try {
             checkNewsElementsExist();
             return true;
@@ -286,8 +340,8 @@ public class ControlPanelPage {
         }
     }
 
+    // Раскрытие и скрытие описания новости
     public void expandAndCollapseNewsDescription() {
-        Allure.step("Раскрытие и скрытие описания новости");
         checkControlPanelIsDisplayed();
         ViewInteraction recyclerView = onView(allOf(withId(NEWS_LIST_RECYCLER_ID), isDisplayed()));
         WaitUtils.waitForElement(recyclerView, LONG_DELAY);
@@ -297,8 +351,8 @@ public class ControlPanelPage {
         WaitUtils.waitForMillis(SHORT_DELAY);
     }
 
+    // Проверка функциональности описания новости
     public boolean isNewsDescriptionFunctional() {
-        Allure.step("Проверка функциональности описания новости");
         try {
             expandAndCollapseNewsDescription();
             return true;
@@ -307,8 +361,8 @@ public class ControlPanelPage {
         }
     }
 
+    // Получение года из даты создания новости
     public int getCreationDateYear(String newsTitle) {
-        Allure.step("Получение года из даты создания новости: " + newsTitle);
         checkControlPanelIsDisplayed();
         boolean found = findNewsByTitleWithScroll(newsTitle);
         if (!found) {
@@ -327,8 +381,8 @@ public class ControlPanelPage {
         return extractYearFromDate(dateText);
     }
 
+    // Проверка отображения даты публикации для новости
     public boolean isPublicationDateDisplayed(String title, String expectedDate) {
-        Allure.step("Проверка отображения даты публикации для новости: " + title + ", ожидаемая дата: " + expectedDate);
         try {
             if (!findNewsByTitleWithScroll(title)) {
                 return false;
@@ -355,18 +409,18 @@ public class ControlPanelPage {
         }
     }
 
+    // Прокрутка к началу списка новостей
     public void scrollToTop() {
-        Allure.step("Прокрутка к началу списка новостей");
         try {
             onView(withId(NEWS_LIST_RECYCLER_ID)).perform(scrollToPosition(0));
-            WaitUtils.waitForElementWithId(NEWS_TITLE_VIEW_ID, MEDIUM_DELAY);
+            WaitUtils.waitForMillis(MEDIUM_DELAY);
         } catch (Exception e) {
             // Игнорируем исключение
         }
     }
 
+    // Создание новостей для проверки сортировки
     public Map<String, String> createTestNewsForSortingTest() {
-        Allure.step("Создание новостей для проверки сортировки");
         Map<String, String> createdNews = new HashMap<>();
 
         String todayTitle = TestData.News.Sorting.generateUniqueTitle(TestData.News.Sorting.TODAY_NEWS_PREFIX);
@@ -386,8 +440,8 @@ public class ControlPanelPage {
         return createdNews;
     }
 
+    // Проверка видимости новости без прокрутки
     public boolean isNewsVisibleWithoutScroll(String title) {
-        Allure.step("Проверка видимости новости без прокрутки: " + title);
         try {
             onView(allOf(
                     withId(R.id.news_item_title_text_view),
@@ -400,8 +454,8 @@ public class ControlPanelPage {
         }
     }
 
+    // Проверка пустого списка новостей
     public boolean isNewsListEmpty() {
-        Allure.step("Проверка пустого списка новостей");
         try {
             onView(withText("There is nothing here yet...")).check(matches(isDisplayed()));
             return true;
@@ -415,8 +469,8 @@ public class ControlPanelPage {
         }
     }
 
+    // Проверка наличия неактивных новостей
     public boolean hasInactiveNews() {
-        Allure.step("Проверка наличия неактивных новостей");
         try {
             onView(withText("NOT ACTIVE")).check(matches(isDisplayed()));
             return true;
@@ -425,8 +479,8 @@ public class ControlPanelPage {
         }
     }
 
+    // Проверка наличия активных новостей
     public boolean hasActiveNews() {
-        Allure.step("Проверка наличия активных новостей");
         try {
             onView(withText("ACTIVE")).check(matches(isDisplayed()));
             return true;
@@ -435,8 +489,8 @@ public class ControlPanelPage {
         }
     }
 
+    // Проверка многострочного описания новости
     public boolean isMultilineDescriptionDisplayed(String newsTitle, String expectedDescription) {
-        Allure.step("Проверка многострочного описания новости: " + newsTitle);
         try {
             boolean found = findNewsByTitleWithScroll(newsTitle);
             if (!found) {
@@ -473,42 +527,6 @@ public class ControlPanelPage {
         } catch (Exception e) {
             return false;
         }
-    }
-
-    public String createTestNewsWithCalendar(String title, String category, int daysFromNow,
-                                             String time, String description) {
-        Allure.step("Создание тестовой новости с выбором даты через календарь. Заголовок: " + title +
-                ", категория: " + category + ", дней от текущей: " + daysFromNow);
-        CreateEditNewsPage createPage = navigateToCreateNews();
-        WaitUtils.waitForElementWithId(R.id.news_item_title_text_input_edit_text, LONG_DELAY);
-
-        createPage.fillTitle(title);
-        WaitUtils.waitForMillis(SHORT_DELAY);
-        createPage.selectCategorySimple(category);
-        WaitUtils.waitForMillis(SHORT_DELAY);
-
-        if (daysFromNow == 0) {
-            createPage.selectCurrentDate();
-        } else if (daysFromNow > 0) {
-            createPage.selectFutureDate(daysFromNow);
-        } else {
-            createPage.selectPastDate(Math.abs(daysFromNow));
-        }
-
-        WaitUtils.waitForMillis(SHORT_DELAY);
-
-        createPage.selectTime(time);
-        WaitUtils.waitForMillis(SHORT_DELAY);
-
-        createPage.fillDescription(description);
-        WaitUtils.waitForMillis(SHORT_DELAY);
-
-        createPage.clickSaveButton();
-        checkControlPanelIsDisplayed();
-
-        boolean created = verifyNewsCreated(title);
-        assertTrue("Failed to create news with title: " + title, created);
-        return title;
     }
 
     // Вспомогательные методы
