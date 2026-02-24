@@ -1,13 +1,8 @@
 package ru.iteco.fmhandroid.ui.tests;
 
-import static androidx.test.espresso.Espresso.onView;
-import static androidx.test.espresso.action.ViewActions.click;
-import static androidx.test.espresso.assertion.ViewAssertions.matches;
-import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
-import static androidx.test.espresso.matcher.ViewMatchers.withId;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,13 +11,11 @@ import java.time.LocalDate;
 import java.util.Map;
 
 import io.qameta.allure.android.runners.AllureAndroidJUnit4;
-import io.qameta.allure.kotlin.Allure;
 import io.qameta.allure.kotlin.Description;
 import io.qameta.allure.kotlin.Epic;
 import io.qameta.allure.kotlin.Feature;
 import io.qameta.allure.kotlin.Story;
 import io.qameta.allure.kotlin.junit4.DisplayName;
-import ru.iteco.fmhandroid.R;
 import ru.iteco.fmhandroid.ui.core.BaseTest;
 import ru.iteco.fmhandroid.ui.core.TestData;
 import ru.iteco.fmhandroid.ui.pages.ControlPanelPage;
@@ -34,272 +27,239 @@ import ru.iteco.fmhandroid.ui.pages.NewsPage;
 @RunWith(AllureAndroidJUnit4.class)
 @Epic("Управление новостями")
 @Feature("Control Panel - Панель управления новостей")
-@DisplayName("Тесты Control Panel для управления новостей")
+@DisplayName("Тесты Control Panel")
 public class ControlPanelNewsTest extends BaseTest {
 
-    private final ControlPanelPage controlPanelPage = new ControlPanelPage();
-    private final NavigationDrawerPage navigationDrawer = new NavigationDrawerPage();
-    private final NewsPage newsPage = new NewsPage();
-    private final NewsFilterPage newsFilterPage = new NewsFilterPage();
+    private ControlPanelPage controlPanelPage;
+    private NavigationDrawerPage navigationDrawer;
+    private NewsPage newsPage;
+    private NewsFilterPage newsFilterPage;
 
     @Before
     public void setUp() {
-        Allure.step("Настройка тестового окружения - авторизация и переход в Control Panel");
-        setUpToAuthScreen();
-        loginAndGoToMainScreen();
+        ensureOnMainScreen();
+        controlPanelPage = new ControlPanelPage();
+        navigationDrawer = new NavigationDrawerPage();
+        newsPage = new NewsPage();
+        newsFilterPage = new NewsFilterPage();
 
-        controlPanelPage.navigateToControlPanelFromMain(navigationDrawer, newsPage);
-    }
-
-    @After
-    public void tearDown() {
-        Allure.step("Очистка после теста - выход из системы");
-        tearDownToAuthScreen();
-    }
-
-    @Test
-    @DisplayName("Переход в 'Control Panel'")
-    @Description("TC-NEWS-CP-01: Переход в 'Control Panel'")
-    @Story("Пользователь может перейти в панель управления для редактирования новостей")
-    public void testNavigateToControlPanel() {
-        Allure.step("Шаг 1: Проверка отображения Control Panel");
-        boolean isDisplayed = controlPanelPage.isControlPanelDisplayed();
-
-        Allure.step("Шаг 2: Проверка успешного перехода в Control Panel");
-        assertTrue("BUG: Control Panel screen should be accessible from News screen",
-                isDisplayed);
+        // Переход в Control Panel
+        navigationDrawer.openMenu().clickNewsMenuItem();
+        newsPage.waitForNewsScreen();
+        controlPanelPage.clickEditNewsButton();
+        controlPanelPage.waitForControlPanelLoaded();
     }
 
     @Test
-    @DisplayName("Проверка элементов управления у новости в Control Panel")
-    @Description("TC-NEWS-CP-02: Проверка элементов управления у новости in Control Panel")
-    @Story("Каждая карточка новости в Control Panel должна предоставлять интерфейс для управления")
-    public void testDisplayNewsElementsInControlPanel() {
-        Allure.step("Шаг 1: Проверка отображения списка новостей");
-        onView(withId(R.id.news_list_recycler_view)).check(matches(isDisplayed()));
-
-        Allure.step("Шаг 2: Прокрутка к началу списка");
-        controlPanelPage.scrollToTop();
-
-        Allure.step("Шаг 3: Проверка наличия элементов управления новостями");
-        controlPanelPage.checkNewsElementsExist();
-
-        Allure.step("Шаг 4: Проверка, что все элементы управления отображаются");
-        assertTrue("BUG: News management elements should be displayed in Control Panel",
-                controlPanelPage.areNewsElementsDisplayed());
-    }
-
-    @Test
-    @DisplayName("Раскрытие/скрытие описания новости")
-    @Description("TC-NEWS-CP-03: Раскрытие/скрытие описания новости")
-    @Story("Пользователь может управлять отображением описания новости")
-    public void testExpandCollapseNewsDescription() {
-        Allure.step("Шаг 1: Раскрытие и скрытие описания новости");
-        controlPanelPage.expandAndCollapseNewsDescription();
-
-        Allure.step("Шаг 2: Проверка функциональности раскрытия/скрытия");
-        assertTrue("BUG: News description should be expandable/collapsible",
-                controlPanelPage.isNewsDescriptionFunctional());
-    }
-
-    @Test
-    @DisplayName("Переход к редактированию новости")
-    @Description("TC-NEWS-CP-04: Переход к редактированию новости")
-    @Story("Пользователь может редактировать новости через Control Panel")
-    public void testNavigateToEditNews() {
-        Allure.step("Шаг 1: Навигация к редактированию новости");
-        CreateEditNewsPage editPage = controlPanelPage.navigateToEditNews();
-
-        Allure.step("Шаг 2: Проверка отображения экрана редактирования");
-        assertTrue("BUG: Edit news screen should be accessible from Control Panel",
-                editPage.isEditScreenDisplayed());
-
-        Allure.step("Шаг 3: Отмена редактирования с подтверждением");
-        editPage.cancelWithConfirmation();
-
-        Allure.step("Шаг 4: Проверка возврата в Control Panel");
-        assertTrue(controlPanelPage.isControlPanelDisplayed());
-    }
-
-    @Test
-    @DisplayName("Проверка корректности отображения 'Publication date'")
-    @Description("TC-NEWS-CP-06: Проверка корректности отображения 'Publication date'")
-    @Story("Дата публикации должна корректно отображаться для каждой новости")
-    public void testPublicationDateDisplay() {
-        String testNewsTitle = "Test Publication Date " + System.currentTimeMillis();
-        Allure.step("Шаг 1: Создание тестовой новости с заголовком: " + testNewsTitle);
-
-        testNewsTitle = controlPanelPage.createTestNews(
-                testNewsTitle,
-                TestData.News.CATEGORY_ANNOUNCEMENT,
-                TestData.News.getFutureDate(1),
-                TestData.News.DEFAULT_TIME,
-                "Test description for publication date"
-        );
-
+    @DisplayName("Отображение элементов у новостей в Control Panel")
+    @Description("TC-NEWS-CP-01: Проверка наличия всех элементов управления у новости")
+    @Story("Каждая карточка новости содержит все необходимые элементы")
+    public void testNewsElementsDisplay() {
+        String testTitle = "TestNews_" + System.currentTimeMillis();
         try {
-            String expectedDate = TestData.News.getFutureDate(1);
-            Allure.step("Шаг 2: Проверка отображения даты публикации. Ожидаемая дата: " + expectedDate);
-            boolean isPublicationDateCorrect = controlPanelPage.isPublicationDateDisplayed(testNewsTitle, expectedDate);
+            String createdTitle = controlPanelPage.createTestNews(
+                    testTitle,
+                    TestData.News.CATEGORY_ANNOUNCEMENT,
+                    TestData.News.getFutureDate(1),
+                    TestData.News.DEFAULT_TIME,
+                    "Test description"
+            );
 
-            Allure.step("Шаг 3: Проверка корректности даты публикации");
-            assertTrue("BUG: Publication date should be displayed correctly for created news",
-                    isPublicationDateCorrect);
+            controlPanelPage.checkNewsItemElements(createdTitle);
         } finally {
-            Allure.step("Очистка: Удаление тестовой новости");
-            controlPanelPage.deleteCreatedNewsByExactTitle(testNewsTitle);
+            controlPanelPage.safeDeleteNews(testTitle);
         }
     }
 
     @Test
-    @DisplayName("Проверка корректности отображения 'Creation date'")
-    @Description("TC-NEWS-CP-07: Проверка корректности отображения 'Creation date'")
-    @Story("Дата создания должна содержать корректный год")
+    @DisplayName("Раскрытие/скрытие описания новости")
+    @Description("TC-NEWS-CP-02: Проверка функционала раскрытия описания")
+    @Story("Пользователь может раскрывать и скрывать описание новости")
+    public void testExpandCollapseDescription() {
+        String testTitle = "ExpandTest_" + System.currentTimeMillis();
+        try {
+            String createdTitle = controlPanelPage.createTestNews(
+                    testTitle,
+                    TestData.News.CATEGORY_ANNOUNCEMENT,
+                    TestData.News.getFutureDate(1),
+                    TestData.News.DEFAULT_TIME,
+                    "Test description for expand/collapse"
+            );
+
+            controlPanelPage.expandAndCollapseDescription(createdTitle);
+        } finally {
+            controlPanelPage.safeDeleteNews(testTitle);
+        }
+    }
+
+    @Test
+    @DisplayName("Переход к редактированию новости")
+    @Description("TC-NEWS-CP-03: Проверка перехода на экран редактирования")
+    @Story("Пользователь может перейти к редактированию новости")
+    public void testNavigateToEdit() {
+        String testTitle = "EditNavTest_" + System.currentTimeMillis();
+        try {
+            String createdTitle = controlPanelPage.createTestNews(
+                    testTitle,
+                    TestData.News.CATEGORY_ANNOUNCEMENT,
+                    TestData.News.getFutureDate(1),
+                    TestData.News.DEFAULT_TIME,
+                    "Test description for edit navigation"
+            );
+
+            CreateEditNewsPage editPage = controlPanelPage.navigateToEditNews(createdTitle);
+            assertTrue("Edit screen should be displayed", editPage.isEditScreenDisplayed());
+
+            editPage.cancelWithConfirmation();
+            assertTrue("Should return to Control Panel", controlPanelPage.isControlPanelDisplayed());
+        } finally {
+            controlPanelPage.safeDeleteNews(testTitle);
+        }
+    }
+
+    @Test
+    @DisplayName("Полный E2E сценарий удаления новости")
+    @Description("TC-NEWS-CP-04: Создание и удаление новости")
+    @Story("Пользователь может создать и удалить новость")
+    public void testCreateAndDeleteNews() {
+        String testTitle = "DeleteTest_" + System.currentTimeMillis();
+
+        String createdTitle = controlPanelPage.createTestNews(
+                testTitle,
+                TestData.News.CATEGORY_ANNOUNCEMENT,
+                TestData.News.getFutureDate(1),
+                TestData.News.DEFAULT_TIME,
+                "Test description for deletion"
+        );
+
+        assertTrue("News should be created", controlPanelPage.isNewsDisplayed(createdTitle));
+
+        controlPanelPage.deleteNews(createdTitle);
+        assertFalse("News should be deleted", controlPanelPage.isNewsDisplayed(createdTitle));
+    }
+
+    @Test
+    @DisplayName("Проверка корректности отображения Publication date")
+    @Description("TC-NEWS-CP-05: Дата публикации отображается корректно")
+    @Story("Дата публикации новости отображается в правильном формате")
+    public void testPublicationDateDisplay() {
+        String expectedDate = TestData.News.getFutureDate(1);
+        String testTitle = "PubDateTest_" + System.currentTimeMillis();
+
+        try {
+            String createdTitle = controlPanelPage.createTestNews(
+                    testTitle,
+                    TestData.News.CATEGORY_ANNOUNCEMENT,
+                    expectedDate,
+                    TestData.News.DEFAULT_TIME,
+                    "Test for publication date"
+            );
+
+            assertTrue("Publication date should be displayed correctly",
+                    controlPanelPage.isPublicationDateCorrect(createdTitle, expectedDate));
+        } finally {
+            controlPanelPage.safeDeleteNews(testTitle);
+        }
+    }
+
+    @Test
+    @DisplayName("Проверка корректности отображения Creation date")
+    @Description("TC-NEWS-CP-06: Дата создания отображается корректно")
+    @Story("Дата создания новости должна содержать правильный год")
     public void testCreationDateDisplay() {
         int currentYear = LocalDate.now().getYear();
-        Allure.step("Шаг 1: Создание новости для теста дат. Текущий год: " + currentYear);
+        String testTitle = "CreationDateTest_" + System.currentTimeMillis();
 
-        String testNewsTitle = controlPanelPage.createNewsForDateTest(currentYear);
         try {
-            Allure.step("Шаг 2: Получение года из даты создания новости");
-            int actualYear = controlPanelPage.getCreationDateYear(testNewsTitle);
+            String createdTitle = controlPanelPage.createTestNews(
+                    testTitle,
+                    TestData.News.CATEGORY_ANNOUNCEMENT,
+                    TestData.News.getFutureDate(1),
+                    TestData.News.DEFAULT_TIME,
+                    "Test for creation date"
+            );
 
-            Allure.step("Шаг 3: Проверка соответствия года. Ожидаемый: " + currentYear + ", Фактический: " + actualYear);
-            assertTrue("BUG: Creation date should display correct year",
+            int actualYear = controlPanelPage.getCreationDateYear(createdTitle);
+            assertTrue("Creation date should contain correct year. Expected: " + currentYear +
+                            ", Actual: " + actualYear,
                     actualYear == currentYear);
         } finally {
-            Allure.step("Очистка: Удаление тестовой новости");
-            controlPanelPage.deleteCreatedNewsByExactTitle(testNewsTitle);
+            controlPanelPage.safeDeleteNews(testTitle);
         }
     }
 
     @Test
     @DisplayName("Сортировка новостей по дате публикации")
-    @Description("TC-NEWS-CP-08: Сортировка новостей по дате публикации")
-    @Story("Пользователь может сортировать новости по дате публикации в прямом и обратном порядке")
-    public void testSortNewsByPublicationDate() {
-
-        // Примечание: Проверку конкретного порядка сортировки по датам публикации
-        // двух новостей реализовать не удалось из-за сложности
-        // определения точных позиций новостей в RecyclerView.
-        // Тест проверяет базовую функциональность сортировки - изменение порядка
-        // новостей при нажатии кнопки сортировки.
-
-        Allure.step("Шаг 1: Создание тестовых новостей для проверки сортировки");
-        Map<String, String> testNews = controlPanelPage.createTestNewsForSortingTest();
+    @Description("TC-NEWS-CP-07: Сортировка меняет порядок новостей")
+    @Story("Пользователь может сортировать новости по дате")
+    public void testSortNews() {
+        Map<String, String> testNews = controlPanelPage.createTwoNewsForSortingTest();
         String todayTitle = testNews.get("todayTitle");
         String tomorrowTitle = testNews.get("tomorrowTitle");
 
         try {
-            Allure.step("Шаг 2: Прокрутка к началу списка");
             controlPanelPage.scrollToTop();
 
-            Allure.step("Шаг 3: Проверка видимости тестовых новостей");
-            boolean todayVisible = controlPanelPage.isNewsVisibleWithoutScroll(todayTitle);
-            boolean tomorrowVisible = controlPanelPage.isNewsVisibleWithoutScroll(tomorrowTitle);
+            boolean todayFirstBefore = controlPanelPage.isNewsVisibleWithoutScroll(todayTitle);
+            boolean tomorrowFirstBefore = controlPanelPage.isNewsVisibleWithoutScroll(tomorrowTitle);
 
-            assertTrue("BUG: At least one test news should be visible without scrolling",
-                    todayVisible || tomorrowVisible);
+            controlPanelPage.clickSortButton();
+            controlPanelPage.scrollToTop();
 
-            String visibleFirst = todayVisible ? todayTitle : tomorrowTitle;
-            String previousFirst = visibleFirst;
-            boolean sortChangedSomething = false;
+            boolean todayFirstAfter = controlPanelPage.isNewsVisibleWithoutScroll(todayTitle);
+            boolean tomorrowFirstAfter = controlPanelPage.isNewsVisibleWithoutScroll(tomorrowTitle);
 
-            Allure.step("Шаг 4: Проверка изменения порядка при сортировке");
-            for (int i = 1; i <= 2; i++) {
-                Allure.step("Сортировка #" + i);
-                controlPanelPage.clickSortButton();
-                controlPanelPage.scrollToTop();
-
-                boolean todayNowVisible = controlPanelPage.isNewsVisibleWithoutScroll(todayTitle);
-                boolean tomorrowNowVisible = controlPanelPage.isNewsVisibleWithoutScroll(tomorrowTitle);
-                String currentFirst = todayNowVisible ? todayTitle :
-                        tomorrowNowVisible ? tomorrowTitle : "";
-
-                if (!currentFirst.equals(previousFirst) && !currentFirst.isEmpty()) {
-                    sortChangedSomething = true;
-                }
-                previousFirst = currentFirst;
-            }
-
-            Allure.step("Шаг 5: Проверка, что сортировка изменила порядок новостей");
-            assertTrue("BUG: Sort button should change news order",
-                    sortChangedSomething);
+            assertTrue("Sort button should change news order",
+                    (todayFirstBefore != todayFirstAfter) || (tomorrowFirstBefore != tomorrowFirstAfter));
         } finally {
-            Allure.step("Очистка: Удаление тестовых новостей");
-            controlPanelPage.deleteCreatedNewsByExactTitle(todayTitle);
-            controlPanelPage.deleteCreatedNewsByExactTitle(tomorrowTitle);
+            controlPanelPage.safeDeleteNews(todayTitle);
+            controlPanelPage.safeDeleteNews(tomorrowTitle);
         }
     }
 
     @Test
     @DisplayName("Фильтрация с неактивным чекбоксом статуса")
-    @Description("TC-NEWS-CP-09: Фильтрация с неактивным чекбоксом статуса")
-    @Story("При снятых чекбоксах активных/неактивных новостей не должно быть результатов")
-    public void testFilterWithNoStatusChecked() {
-        Allure.step("Шаг 1: Открытие фильтра новостей");
+    @Description("TC-NEWS-CP-08: Пустой список при снятых чекбоксах (баг)")
+    @Story("При отсутствии выбранных статусов не должно быть результатов")
+    public void testFilterWithNoStatus() {
         controlPanelPage.openNewsFilter();
+        assertTrue("Filter dialog should be displayed", newsFilterPage.isFilterDialogDisplayed());
 
-        Allure.step("Шаг 2: Проверка отображения диалога фильтра");
-        assertTrue(newsFilterPage.isFilterDialogDisplayed());
+        newsFilterPage.uncheckActive()
+                .uncheckInactive()
+                .applyFilter();
 
-        Allure.step("Шаг 3: Снятие чекбокса активных новостей");
-        onView(withId(R.id.filter_news_active_material_check_box)).perform(click());
-
-        Allure.step("Шаг 4: Снятие чекбокса неактивных новостей");
-        onView(withId(R.id.filter_news_inactive_material_check_box)).perform(click());
-
-        Allure.step("Шаг 5: Применение фильтра");
-        newsFilterPage.applyFilter();
-
-        Allure.step("Шаг 6: Проверка, что список новостей пуст");
-        boolean isEmptyList = controlPanelPage.isNewsListEmpty();
-        assertTrue("BUG: List should be empty when no status checkboxes are selected", isEmptyList);
+        assertTrue("News list should be empty when no status selected",
+                controlPanelPage.isNewsListEmpty());
     }
 
     @Test
     @DisplayName("Фильтрация только активных новостей")
-    @Description("TC-NEWS-CP-10: Фильтрация только активных новостей")
-    @Story("При фильтрации только активных новостей не должны отображаться неактивные")
-    public void testFilterOnlyActiveNews() {
-        Allure.step("Шаг 1: Открытие фильтра новостей");
+    @Description("TC-NEWS-CP-09: Отображаются только активные новости")
+    @Story("При фильтре по активным новостям неактивные не отображаются")
+    public void testFilterOnlyActive() {
         controlPanelPage.openNewsFilter();
+        assertTrue("Filter dialog should be displayed", newsFilterPage.isFilterDialogDisplayed());
 
-        Allure.step("Шаг 2: Проверка отображения диалога фильтра");
-        assertTrue(newsFilterPage.isFilterDialogDisplayed());
+        newsFilterPage.checkOnlyActive()
+                .applyFilter();
 
-        Allure.step("Шаг 3: Снятие чекбокса неактивных новостей");
-        onView(withId(R.id.filter_news_inactive_material_check_box)).perform(click());
-
-        Allure.step("Шаг 4: Применение фильтра");
-        newsFilterPage.applyFilter();
-
-        Allure.step("Шаг 5: Проверка отсутствия неактивных новостей");
-        boolean hasInactiveNews = controlPanelPage.hasInactiveNews();
-        assertTrue("BUG: Inactive news should not be displayed when filtering only active news",
-                !hasInactiveNews);
+        assertTrue("Only active news should be displayed",
+                controlPanelPage.hasOnlyActiveNews());
     }
 
     @Test
     @DisplayName("Фильтрация только неактивных новостей")
-    @Description("TC-NEWS-CP-11: Фильтрация только неактивных новостей")
-    @Story("При фильтрации только неактивных новостей не должны отображаться активные")
-    public void testFilterOnlyInactiveNews() {
-        Allure.step("Шаг 1: Открытие фильтра новостей");
+    @Description("TC-NEWS-CP-10: Отображаются только неактивные новости")
+    @Story("При фильтре по неактивным новостям активные не отображаются")
+    public void testFilterOnlyInactive() {
         controlPanelPage.openNewsFilter();
+        assertTrue("Filter dialog should be displayed", newsFilterPage.isFilterDialogDisplayed());
 
-        Allure.step("Шаг 2: Проверка отображения диалога фильтра");
-        assertTrue(newsFilterPage.isFilterDialogDisplayed());
+        newsFilterPage.checkOnlyInactive()
+                .applyFilter();
 
-        Allure.step("Шаг 3: Снятие чекбокса активных новостей");
-        onView(withId(R.id.filter_news_active_material_check_box)).perform(click());
-
-        Allure.step("Шаг 4: Применение фильтра");
-        newsFilterPage.applyFilter();
-
-        Allure.step("Шаг 5: Проверка отсутствия активных новостей");
-        boolean hasActiveNews = controlPanelPage.hasActiveNews();
-        assertTrue("BUG: Active news should not be displayed when filtering only inactive news",
-                !hasActiveNews);
+        assertTrue("Only inactive news should be displayed",
+                controlPanelPage.hasOnlyInactiveNews());
     }
 }

@@ -21,10 +21,10 @@ public class DatePickerUtils {
     // Выбрать дату через календарь
     public static void selectDateViaCalendar(int year, int month, int day) {
         onView(withId(R.id.news_item_publish_date_text_input_edit_text)).perform(click());
-        WaitUtils.waitForMillis(500);
+        WaitUtils.waitMillis(500);
         onView(withClassName(is(DatePicker.class.getName()))).perform(setDate(year, month, day));
         onView(withId(android.R.id.button1)).perform(click());
-        WaitUtils.waitForMillis(300);
+        WaitUtils.waitMillis(300);
     }
 
     // Выбрать текущую дату через календарь
@@ -33,25 +33,13 @@ public class DatePickerUtils {
         selectDateViaCalendar(today.getYear(), today.getMonthValue(), today.getDayOfMonth());
     }
 
-    // Выбрать будущую дату через календарь
-    public static void selectFutureDateViaCalendar(int days) {
-        LocalDate futureDate = LocalDate.now().plusDays(days);
-        selectDateViaCalendar(futureDate.getYear(), futureDate.getMonthValue(), futureDate.getDayOfMonth());
-    }
-
-    // Выбрать прошедшую дату через календарь
-    public static void selectPastDateViaCalendar(int days) {
-        LocalDate pastDate = LocalDate.now().minusDays(days);
-        selectDateViaCalendar(pastDate.getYear(), pastDate.getMonthValue(), pastDate.getDayOfMonth());
-    }
-
     // Выбрать время через часы
     public static void selectTimeViaTimePicker(int hour, int minute) {
         onView(withId(R.id.news_item_publish_time_text_input_edit_text)).perform(click());
-        WaitUtils.waitForMillis(500);
+        WaitUtils.waitMillis(500);
         onView(withClassName(is(TimePicker.class.getName()))).perform(setTime(hour, minute));
         onView(withId(android.R.id.button1)).perform(click());
-        WaitUtils.waitForMillis(300);
+        WaitUtils.waitMillis(300);
     }
 
     // Выбрать текущее время через часы

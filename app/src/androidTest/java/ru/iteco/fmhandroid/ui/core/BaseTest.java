@@ -2,9 +2,15 @@ package ru.iteco.fmhandroid.ui.core;
 
 import androidx.test.ext.junit.rules.ActivityScenarioRule;
 import androidx.test.filters.LargeTest;
+import androidx.test.internal.runner.junit4.statement.UiThreadStatement;
 
 import org.junit.Rule;
+import org.junit.rules.TestRule;
+import org.junit.rules.TestWatcher;
+import org.junit.runner.Description;
 
+import io.qameta.allure.kotlin.Allure;
+import ru.iteco.fmhandroid.R;
 import ru.iteco.fmhandroid.ui.AppActivity;
 import ru.iteco.fmhandroid.ui.pages.AuthorizationPage;
 import ru.iteco.fmhandroid.ui.pages.MainPage;
@@ -13,130 +19,105 @@ import ru.iteco.fmhandroid.ui.utils.WaitUtils;
 @LargeTest
 public abstract class BaseTest {
 
-    private static final int MEDIUM_DELAY = 500;
-    private static final int LONG_DELAY = 2000;
-    private static final int EXTRA_LONG_DELAY = 3000;
-    private static final int POLLING_DELAY = 200;
-
     @Rule
     public ActivityScenarioRule<AppActivity> activityRule =
             new ActivityScenarioRule<>(AppActivity.class);
 
+    @Rule
+    public TestRule watcher = new TestWatcher() {
+        @Override
+        protected void failed(Throwable e, Description description) {
+            activityRule.getScenario().close();
+            try {
+                UiThreadStatement.runOnUiThread(() -> {});
+            } catch (Throwable ex) {}
+        }
+    };
+
     protected AuthorizationPage authPage = new AuthorizationPage();
     protected MainPage mainPage = new MainPage();
 
-    private enum ScreenState {
-        AUTH_SCREEN, MAIN_SCREEN, UNKNOWN_SCREEN
-    }
-
-    // Определение текущего экрана приложения
-    private ScreenState detectCurrentScreen() {
-        if (authPage.isAuthorizationScreenDisplayed()) {
-            return ScreenState.AUTH_SCREEN;
-        }
-        if (mainPage.isMainScreenDisplayed()) {
-            return ScreenState.MAIN_SCREEN;
-        }
-        return ScreenState.UNKNOWN_SCREEN;
-    }
-
-    // Безопасный выход из системы
-    protected void performSafeLogout() {
-        try {
-            mainPage.tryToLogout();
-            WaitUtils.waitForMillis(MEDIUM_DELAY);
-        } catch (Exception e) {
-            System.err.println("Error during logout: " + e.getMessage());
-        }
-    }
-
-    // Ожидание появления экрана авторизации
-    protected void waitForAuthScreen(int timeoutMillis) {
-        long endTime = System.currentTimeMillis() + timeoutMillis;
-        while (System.currentTimeMillis() < endTime) {
-            if (authPage.isAuthorizationScreenDisplayed()) {
-                return;
-            }
-            WaitUtils.waitForMillis(POLLING_DELAY);
-        }
-    }
-
-    // Проверка, что мы на экране авторизации
     protected void ensureOnAuthScreen() {
-        if (!authPage.isAuthorizationScreenDisplayed()) {
-            throw new IllegalStateException("Not on authorization screen");
-        }
-    }
-
-    // Настройка тестового окружения - вернуться на экран авторизации
-    protected void setUpToAuthScreen() {
-        ScreenState currentState = detectCurrentScreen();
-
-        if (currentState == ScreenState.AUTH_SCREEN) {
-            return;
-        }
-
-        if (currentState == ScreenState.MAIN_SCREEN) {
-            performSafeLogout();
-            waitForAuthScreen(EXTRA_LONG_DELAY);
-            ensureOnAuthScreen();
-            return;
-        }
-
-        WaitUtils.waitForMillis(LONG_DELAY);
-        currentState = detectCurrentScreen();
-
-        if (currentState == ScreenState.MAIN_SCREEN) {
-            performSafeLogout();
-            waitForAuthScreen(EXTRA_LONG_DELAY);
-        } else if (currentState == ScreenState.UNKNOWN_SCREEN) {
-            throw new IllegalStateException(
-                    "Cannot detect app screen state. " +
-                            "App may need manual restart or is in unexpected state."
-            );
-        }
-
-        ensureOnAuthScreen();
-    }
-
-    // Завершение теста - вернуться на экран авторизации
-    protected void tearDownToAuthScreen() {
-        try {
-            if (mainPage.isMainScreenDisplayed()) {
-                mainPage.tryToLogout();
-                WaitUtils.waitForMillis(MEDIUM_DELAY);
-            }
-        } catch (Exception e) {
-            System.err.println("Error during tearDown logout: " + e.getMessage());
-        }
-    }
-
-    // Авторизация и переход на главный экран
-    protected void loginAndGoToMainScreen() {
-        authPage.checkAuthorizationScreenIsDisplayed();
-        authPage.login(TestData.VALID_LOGIN, TestData.VALID_PASSWORD);
-
-        WaitUtils.waitForMillis(EXTRA_LONG_DELAY);
-
-        if (!mainPage.isMainScreenDisplayed()) {
-            throw new IllegalStateException("Failed to navigate to main screen after authorization");
-        }
-    }
-
-    // Проверка, что мы на главном экране
-    protected void ensureOnMainScreen() {
-        if (!mainPage.isMainScreenDisplayed()) {
-            if (authPage.isAuthorizationScreenDisplayed()) {
-                loginAndGoToMainScreen();
-            } else {
-                WaitUtils.waitForMillis(LONG_DELAY);
+        Allure.step("Обеспечение нахождения на экране авторизации");
+        int maxAttempts = 3;
+        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+            try {
                 if (authPage.isAuthorizationScreenDisplayed()) {
-                    loginAndGoToMainScreen();
-                } else {
-                    setUpToAuthScreen();
-                    loginAndGoToMainScreen();
+                    return;
+                }
+
+                if (mainPage.isMainScreenDisplayed()) {
+                    Allure.step("Обнаружен главный экран, выполняем выход");
+                    performLogout();
+                    return;
+                }
+
+                if (attempt < maxAttempts) {
+                    Allure.step("Неизвестное состояние, перезапускаем активность");
+                    activityRule.getScenario().recreate();
+                }
+            } catch (Exception e) {
+                if (attempt < maxAttempts) {
                 }
             }
+        }
+        throw new IllegalStateException("Failed to reach authorization screen after " + maxAttempts + " attempts");
+    }
+
+    protected void ensureOnMainScreen() {
+        Allure.step("Обеспечение нахождения на главном экране");
+        int maxAttempts = 3;
+        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+            try {
+                if (mainPage.isMainScreenDisplayed()) {
+                    return;
+                }
+
+                if (authPage.isAuthorizationScreenDisplayed()) {
+                    Allure.step("Обнаружен экран авторизации, выполняем вход");
+                    authPage.login(TestData.VALID_LOGIN, TestData.VALID_PASSWORD);
+                    waitForMainScreenDisplayed();
+                    return;
+                }
+
+                if (attempt < maxAttempts) {
+                    Allure.step("Неизвестное состояние, перезапускаем активность");
+                    activityRule.getScenario().recreate();
+                }
+            } catch (Exception e) {
+                if (attempt < maxAttempts) {
+                }
+            }
+        }
+        throw new IllegalStateException("Failed to reach main screen after " + maxAttempts + " attempts");
+    }
+
+    protected void waitForMainScreenDisplayed() {
+        Allure.step("Ожидание отображения главного экрана");
+        long endTime = System.currentTimeMillis() + 5000;
+        while (System.currentTimeMillis() < endTime) {
+            try {
+                if (mainPage.isMainScreenDisplayed()) {
+                    return;
+                }
+            } catch (Exception e) {}
+            WaitUtils.waitMillis(200);
+        }
+        throw new AssertionError("Main screen not displayed after 5 seconds");
+    }
+
+    protected void waitForAuthScreenDisplayed() {
+        Allure.step("Ожидание отображения экрана авторизации");
+        WaitUtils.waitForElementWithId(R.id.login_text_input_layout, 5000);
+    }
+
+    protected void performLogout() {
+        Allure.step("Выполнение выхода из системы");
+        try {
+            mainPage.tryToLogout();
+            waitForAuthScreenDisplayed();
+        } catch (Exception e) {
+            activityRule.getScenario().recreate();
         }
     }
 }
